@@ -1,8 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
 import LegalHubClient, { type LegalArticle } from './LegalHubClient'
+import { getUserPlan } from '@/lib/freemium'
 
 export default async function LegalHubPage() {
   const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const plan = user ? await getUserPlan(user.id) : 'free'
+  const isPremium = plan === 'premium'
 
   const { data: articlesData, error } = await supabase
     .from('legal_articles')
@@ -23,7 +29,7 @@ export default async function LegalHubPage() {
         </div>
       ) : null}
       <div className="dashboard-content" style={{ color: '#111827' }}>
-        <LegalHubClient articles={articles} />
+        <LegalHubClient articles={articles} isPremium={isPremium} />
       </div>
     </>
   )

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { ageLabelFromDateOfBirth } from '@/app/dashboard/dogs/dog-age'
+import { checkSymptomLimit } from '@/lib/freemium'
 
 const SYSTEM_PROMPT =
   "You are a veterinary triage assistant. Based on symptoms described, respond in JSON only with: { triage_level: 'emergency'|'vet_asap'|'monitor'|'ok', title: string, explanation: string (2-3 sentences), actions: string[] }. Never diagnose. Always recommend consulting a vet."
@@ -92,6 +93,18 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const limit = await checkSymptomLimit(user.id)
+  if (!limit.allowed) {
+    return NextResponse.json(
+      {
+        error: 'LIMIT_REACHED',
+        message:
+          'Free plan allows 1 symptom check per month. Upgrade to Premium.',
+      },
+      { status: 402 }
+    )
   }
 
   let body: {
@@ -209,6 +222,11 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+
+  await supabase.from('usage_logs').insert({
+    user_id: user.id,
+    feature: 'symptom_check',
+  })
 
   return NextResponse.json(triage)
 }

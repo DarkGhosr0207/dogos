@@ -78,6 +78,9 @@ function triageTitleClass(level: TriageLevel): string {
 
 type SymptomsCheckerProps = {
   dogs: SymptomDogOption[]
+  initialUsed: number
+  limit: number
+  isPremium: boolean
 }
 
 const fieldLabelStyle: CSSProperties = {
@@ -119,7 +122,51 @@ const analyzeBtnStyle: CSSProperties = {
   fontSize: '15px',
 }
 
-export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
+const upgradeCardStyle: CSSProperties = {
+  backgroundColor: '#f0fdf4',
+  border: '1px solid #86efac',
+  borderRadius: '16px',
+  padding: '24px',
+  textAlign: 'center',
+  marginTop: '16px',
+}
+
+const upgradeTitleStyle: CSSProperties = {
+  color: '#166534',
+  fontWeight: 700,
+  fontSize: '18px',
+}
+
+const upgradeSubStyle: CSSProperties = {
+  color: '#15803d',
+  marginTop: '8px',
+}
+
+const upgradeBtnStyle: CSSProperties = {
+  backgroundColor: '#2d7a4f',
+  color: '#ffffff',
+  padding: '10px 14px',
+  borderRadius: '10px',
+  fontWeight: 600,
+  border: 'none',
+  cursor: 'pointer',
+  marginTop: '14px',
+}
+
+const limitReachedCardStyle: CSSProperties = {
+  backgroundColor: '#fef9c3',
+  border: '1px solid #fde047',
+  borderRadius: '16px',
+  padding: '24px',
+  textAlign: 'center',
+}
+
+export default function SymptomsChecker({
+  dogs,
+  initialUsed,
+  limit,
+  isPremium,
+}: SymptomsCheckerProps) {
   const [dogId, setDogId] = useState(() => dogs[0]?.id ?? '')
   const [selectedTags, setSelectedTags] = useState<Set<string>>(
     () => new Set()
@@ -133,6 +180,9 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
   const [analyzeLoading, setAnalyzeLoading] = useState(false)
   const [analyzeError, setAnalyzeError] = useState<string | null>(null)
   const [result, setResult] = useState<TriageResult | null>(null)
+  const [used, setUsed] = useState(initialUsed)
+
+  const limitReached = !isPremium && used >= limit
 
   const symptomsText = useMemo(() => {
     const parts: string[] = TAGS.filter((t) => selectedTags.has(t))
@@ -200,6 +250,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
         'actions' in data
       ) {
         setResult(data as TriageResult)
+        if (!isPremium) setUsed((u) => u + 1)
       } else {
         setAnalyzeError('Unexpected response from server.')
       }
@@ -226,7 +277,28 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
         seek care—it does not replace a vet.
       </p>
 
-      <div className="mt-8 max-w-2xl space-y-6">
+      {!isPremium ? (
+        <p className="mt-2 text-sm" style={{ color: '#6b7280' }}>
+          {used} of {limit} checks used this month
+        </p>
+      ) : null}
+
+      {limitReached ? (
+        <div className="mt-8 max-w-2xl">
+          <div style={limitReachedCardStyle}>
+            <p style={{ color: '#111827', fontWeight: 700, fontSize: '16px' }}>
+              You&apos;ve used your free symptom check for this month
+            </p>
+            <p className="mt-2" style={{ color: '#6b7280' }}>
+              Upgrade to Premium for unlimited AI checks — €10/month
+            </p>
+            <button type="button" style={upgradeBtnStyle}>
+              Upgrade to Premium
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-8 max-w-2xl space-y-6">
         <div>
           <label style={fieldLabelStyle} htmlFor="symptom-dog">
             Dog
@@ -347,7 +419,8 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
             Working…
           </p>
         ) : null}
-      </div>
+        </div>
+      )}
 
       {result ? (
         <div className={`mt-10 max-w-2xl ${triageShellClass(result.triage_level)}`}>
@@ -378,6 +451,18 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
       <p className="mt-10 max-w-2xl text-xs text-gray-400">
         This is not a veterinary diagnosis. Always consult a licensed vet.
       </p>
+
+      {!isPremium ? (
+        <div className="max-w-2xl" style={upgradeCardStyle}>
+          <p style={upgradeTitleStyle}>Premium feature</p>
+          <p style={upgradeSubStyle}>
+            Unlimited AI symptom checks and full Legal Hub access.
+          </p>
+          <button type="button" style={upgradeBtnStyle}>
+            Upgrade to Premium →
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

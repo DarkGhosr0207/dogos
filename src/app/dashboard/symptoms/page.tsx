@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SymptomsChecker, { type SymptomDogOption } from './SymptomsChecker'
+import { checkSymptomLimit, getUserPlan } from '@/lib/freemium'
 
 export default async function SymptomsPage() {
   const supabase = await createClient()
@@ -20,6 +21,14 @@ export default async function SymptomsPage() {
 
   const dogs: SymptomDogOption[] = (dogsData ?? []) as SymptomDogOption[]
 
+  const [plan, limitInfo] = await Promise.all([
+    getUserPlan(user.id),
+    checkSymptomLimit(user.id),
+  ])
+  const isPremium = plan === 'premium'
+  const limit = isPremium ? 999 : 1
+  const used = isPremium ? 0 : limitInfo.used
+
   return (
     <>
       {error ? (
@@ -28,7 +37,12 @@ export default async function SymptomsPage() {
         </div>
       ) : null}
       <div className="dashboard-content" style={{ color: '#111827' }}>
-        <SymptomsChecker dogs={dogs} />
+        <SymptomsChecker
+          dogs={dogs}
+          initialUsed={used}
+          limit={limit}
+          isPremium={isPremium}
+        />
       </div>
     </>
   )

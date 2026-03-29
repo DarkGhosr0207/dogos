@@ -102,9 +102,44 @@ const pageSubtitleStyle: CSSProperties = {
 
 type LegalHubClientProps = {
   articles: LegalArticle[]
+  isPremium: boolean
 }
 
-export default function LegalHubClient({ articles }: LegalHubClientProps) {
+const upgradeCardStyle: CSSProperties = {
+  backgroundColor: '#f0fdf4',
+  border: '1px solid #86efac',
+  borderRadius: '16px',
+  padding: '24px',
+  textAlign: 'center',
+  marginTop: '16px',
+}
+
+const upgradeTitleStyle: CSSProperties = {
+  color: '#166534',
+  fontWeight: 700,
+  fontSize: '18px',
+}
+
+const upgradeSubStyle: CSSProperties = {
+  color: '#15803d',
+  marginTop: '8px',
+}
+
+const upgradeBtnStyle: CSSProperties = {
+  backgroundColor: '#2d7a4f',
+  color: '#ffffff',
+  padding: '10px 14px',
+  borderRadius: '10px',
+  fontWeight: 600,
+  border: 'none',
+  cursor: 'pointer',
+  marginTop: '14px',
+}
+
+export default function LegalHubClient({
+  articles,
+  isPremium,
+}: LegalHubClientProps) {
   const [countryFilter, setCountryFilter] =
     useState<(typeof COUNTRIES)[number]>('All')
   const [categoryFilter, setCategoryFilter] = useState<string>('All')
@@ -174,6 +209,7 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
   }
 
   if (selected) {
+    const preview = selected.content.slice(0, 150)
     return (
       <div style={{ color: '#111827' }}>
         <button
@@ -201,13 +237,45 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
           <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
             {selected.title}
           </h1>
-          <div className="max-w-none text-base leading-relaxed text-gray-600">
-            {selected.content.split(/\n\n+/).map((para, i) => (
-              <p key={i} className="mb-5 last:mb-0">
-                {para}
-              </p>
-            ))}
-          </div>
+          {!isPremium ? (
+            <div className="relative">
+              <div className="max-w-none text-base leading-relaxed text-gray-600">
+                <p className="mb-5 last:mb-0">{preview}…</p>
+              </div>
+              <div
+                className="absolute inset-0"
+                style={{
+                  backdropFilter: 'blur(6px)',
+                  background:
+                    'linear-gradient(to bottom, rgba(247,249,247,0) 0%, rgba(247,249,247,0.9) 45%, rgba(247,249,247,1) 100%)',
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'center',
+                  padding: '16px',
+                  borderRadius: '12px',
+                }}
+              >
+                <div style={upgradeCardStyle}>
+                  <p style={upgradeTitleStyle}>Premium feature</p>
+                  <p style={upgradeSubStyle}>
+                    Full Legal Hub articles and AI Q&amp;A are available on
+                    Premium.
+                  </p>
+                  <button type="button" style={upgradeBtnStyle}>
+                    Upgrade to Premium →
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-none text-base leading-relaxed text-gray-600">
+              {selected.content.split(/\n\n+/).map((para, i) => (
+                <p key={i} className="mb-5 last:mb-0">
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
           {selected.law_reference ? (
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">
@@ -219,43 +287,55 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
             </div>
           ) : null}
 
-          <div className="mt-6 rounded-2xl border border-[#e8ede8] bg-[#f7f9f7] p-5">
-            <h2 className="text-sm font-semibold text-gray-900">
-              Ask AI about this article
-            </h2>
-            <p className="mt-1 text-xs text-gray-500">
-              Answers are based on this article only. Not legal advice.
-            </p>
-            <textarea
-              value={aiQuestion}
-              onChange={(e) => setAiQuestion(e.target.value)}
-              rows={3}
-              placeholder="e.g. Does this apply if I move to another Bundesland?"
-              className={`mt-4 ${inputClass}`}
-            />
-            {aiError ? (
-              <p className="mt-2 text-sm text-red-500" role="alert">
-                {aiError}
+          {isPremium ? (
+            <div className="mt-6 rounded-2xl border border-[#e8ede8] bg-[#f7f9f7] p-5">
+              <h2 className="text-sm font-semibold text-gray-900">
+                Ask AI about this article
+              </h2>
+              <p className="mt-1 text-xs text-gray-500">
+                Answers are based on this article only. Not legal advice.
               </p>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => void askAi()}
-              disabled={aiLoading}
-              className={`mt-4 ${primaryBtn}`}
-            >
-              {aiLoading ? 'Thinking…' : 'Ask AI'}
-            </button>
-            {aiAnswer ? (
-              <div className="mt-3 rounded-xl border border-[#e8ede8] bg-white p-4 text-sm text-gray-700">
-                {aiAnswer}
-              </div>
-            ) : null}
-            <p className="mt-4 text-xs text-gray-400">
-              This is not legal advice. Consult a qualified lawyer for your
-              situation.
-            </p>
-          </div>
+              <textarea
+                value={aiQuestion}
+                onChange={(e) => setAiQuestion(e.target.value)}
+                rows={3}
+                placeholder="e.g. Does this apply if I move to another Bundesland?"
+                className={`mt-4 ${inputClass}`}
+              />
+              {aiError ? (
+                <p className="mt-2 text-sm text-red-500" role="alert">
+                  {aiError}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void askAi()}
+                disabled={aiLoading}
+                className={`mt-4 ${primaryBtn}`}
+              >
+                {aiLoading ? 'Thinking…' : 'Ask AI'}
+              </button>
+              {aiAnswer ? (
+                <div className="mt-3 rounded-xl border border-[#e8ede8] bg-white p-4 text-sm text-gray-700">
+                  {aiAnswer}
+                </div>
+              ) : null}
+              <p className="mt-4 text-xs text-gray-400">
+                This is not legal advice. Consult a qualified lawyer for your
+                situation.
+              </p>
+            </div>
+          ) : (
+            <div style={upgradeCardStyle}>
+              <p style={upgradeTitleStyle}>Premium feature</p>
+              <p style={upgradeSubStyle}>
+                Upgrade to Premium to unlock AI Q&amp;A for Legal Hub.
+              </p>
+              <button type="button" style={upgradeBtnStyle}>
+                Upgrade to Premium →
+              </button>
+            </div>
+          )}
         </div>
       </div>
     )
