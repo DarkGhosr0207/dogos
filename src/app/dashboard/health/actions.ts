@@ -131,6 +131,7 @@ export async function saveHealthLog(formData: FormData): Promise<SaveHealthLogRe
   }
 
   revalidatePath('/dashboard/health')
+  revalidatePath('/dashboard')
   return { ok: true }
 }
 
