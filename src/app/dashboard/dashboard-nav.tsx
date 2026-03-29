@@ -9,6 +9,7 @@ const items = [
   { href: '/dashboard/dogs', label: 'My Dogs', icon: '🐾' },
   { href: '/dashboard/reminders', label: 'Reminders', icon: '🔔' },
   { href: '/dashboard/activity', label: 'Activity', icon: '🏃' },
+  { href: '/dashboard/health', label: 'Health Log', icon: '❤️' },
   { href: '/dashboard/symptoms', label: 'Symptoms', icon: '🩺' },
   { href: '/dashboard/legal', label: 'Legal Hub', icon: '⚖️' },
   { href: '/dashboard/vet', label: 'Find Vet', icon: '🏥' },
