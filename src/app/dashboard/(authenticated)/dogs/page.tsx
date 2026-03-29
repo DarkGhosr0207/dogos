@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import AddDogTrigger from './add-dog-trigger'
-import DogCard from './dog-card'
-import { ageLabelFromDateOfBirth } from './dog-age'
+import AddDogTrigger from '../../dogs/add-dog-trigger'
+import DogCard from '../../dogs/dog-card'
+import { ageLabelFromDateOfBirth } from '../../dogs/dog-age'
 
 export type DogRow = {
   id: string
@@ -39,6 +39,9 @@ export default async function DogsPage() {
           </h1>
           <p className="mt-1 text-sm" style={{ color: '#6b7280' }}>
             Your dogs and basic profile details.
+          </p>
+          <p className="mt-1 max-w-xl text-xs" style={{ color: '#9ca3af' }}>
+            Share your dog&apos;s QR code — if they get lost, anyone can scan it to contact you.
           </p>
         </div>
         <AddDogTrigger />

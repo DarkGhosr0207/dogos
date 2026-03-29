@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import SymptomsChecker, { type SymptomDogOption } from './SymptomsChecker'
-import { checkSymptomLimit, getUserPlan } from '@/lib/freemium'
+import { getUserPlan } from '@/lib/freemium'
+import InsightsClient, { type InsightsDogOption } from './InsightsClient'
+import InsightsUpgrade from './InsightsUpgrade'
 
-export default async function SymptomsPage() {
+export default async function InsightsPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -13,21 +14,18 @@ export default async function SymptomsPage() {
     redirect('/')
   }
 
+  const plan = await getUserPlan(user.id)
+  if (plan !== 'premium_plus') {
+    return <InsightsUpgrade />
+  }
+
   const { data: dogsData, error } = await supabase
     .from('dogs')
     .select('id, name')
     .eq('owner_id', user.id)
     .order('name', { ascending: true })
 
-  const dogs: SymptomDogOption[] = (dogsData ?? []) as SymptomDogOption[]
-
-  const [plan, limitInfo] = await Promise.all([
-    getUserPlan(user.id),
-    checkSymptomLimit(user.id),
-  ])
-  const isPremium = plan === 'premium'
-  const limit = isPremium ? 999 : 1
-  const used = isPremium ? 0 : limitInfo.used
+  const dogs: InsightsDogOption[] = (dogsData ?? []) as InsightsDogOption[]
 
   return (
     <>
@@ -37,12 +35,7 @@ export default async function SymptomsPage() {
         </div>
       ) : null}
       <div className="dashboard-content" style={{ color: '#111827' }}>
-        <SymptomsChecker
-          dogs={dogs}
-          initialUsed={used}
-          limit={limit}
-          isPremium={isPremium}
-        />
+        <InsightsClient dogs={dogs} />
       </div>
     </>
   )

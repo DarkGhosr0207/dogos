@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteDog, uploadDogPhoto } from './actions'
+import QRCode from './QRCode'
 import type { CSSProperties } from 'react'
 
 export type DogCardDog = {
@@ -108,22 +109,25 @@ export default function DogCard({ dog, ageLabel }: DogCardProps) {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full disabled:opacity-50"
-            style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e5e7eb',
-              color: '#2d7a4f',
-              cursor: 'pointer',
-            }}
-            aria-label={`Upload photo for ${dog.name}`}
-            title="Upload photo"
-          >
-            {uploading ? '…' : '📷'}
-          </button>
+          <div className="absolute -bottom-1 right-0 flex gap-1">
+            <QRCode dogId={dog.id} dogName={dog.name} />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full disabled:opacity-50"
+              style={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
+                color: '#2d7a4f',
+                cursor: 'pointer',
+              }}
+              aria-label={`Upload photo for ${dog.name}`}
+              title="Upload photo"
+            >
+              {uploading ? '…' : '📷'}
+            </button>
+          </div>
 
           <input
             ref={fileRef}

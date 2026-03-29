@@ -8,7 +8,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { useRouter } from 'next/navigation'
-import { saveHealthLog } from './health/actions'
+import { saveHealthLog } from '@/app/dashboard/(authenticated)/health/actions'
 
 const CARD_BORDER = '#e5e7eb'
 const GREEN = '#2d7a4f'

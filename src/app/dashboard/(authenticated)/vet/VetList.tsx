@@ -1,6 +1,5 @@
 'use client'
 
-import React from "react"
 import { useMemo, useState } from 'react'
 
 export type VetRow = {

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 
-export type UserPlan = 'free' | 'premium'
+export type UserPlan = 'free' | 'premium' | 'premium_plus'
 
 function startOfCurrentMonthIso(now = new Date()): string {
   const start = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -18,7 +18,14 @@ export async function getUserPlan(userId: string): Promise<UserPlan> {
 
   if (error) return 'free'
   const plan = (data as { plan?: unknown } | null)?.plan
-  return plan === 'premium' ? 'premium' : 'free'
+  if (plan === 'premium_plus') return 'premium_plus'
+  if (plan === 'premium') return 'premium'
+  return 'free'
+}
+
+export async function checkInsightsAccess(userId: string): Promise<boolean> {
+  const plan = await getUserPlan(userId)
+  return plan === 'premium_plus'
 }
 
 export async function checkSymptomLimit(userId: string): Promise<{
@@ -27,7 +34,7 @@ export async function checkSymptomLimit(userId: string): Promise<{
   limit: number
 }> {
   const plan = await getUserPlan(userId)
-  if (plan === 'premium') {
+  if (plan === 'premium' || plan === 'premium_plus') {
     return { allowed: true, used: 0, limit: 999 }
   }
 

@@ -11,6 +11,7 @@ const items = [
   { href: '/dashboard/activity', label: 'Activity', icon: '🏃' },
   { href: '/dashboard/health', label: 'Health Log', icon: '❤️' },
   { href: '/dashboard/weight', label: 'Weight', icon: '⚖️' },
+  { href: '/dashboard/insights', label: 'AI Insights', icon: '👑' },
   { href: '/dashboard/symptoms', label: 'Symptoms', icon: '🩺' },
   { href: '/dashboard/legal', label: 'Legal Hub', icon: '⚖️' },
   { href: '/dashboard/vet', label: 'Find Vet', icon: '🏥' },

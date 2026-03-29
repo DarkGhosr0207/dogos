@@ -8,7 +8,7 @@ export default async function LegalHubPage() {
     data: { user },
   } = await supabase.auth.getUser()
   const plan = user ? await getUserPlan(user.id) : 'free'
-  const isPremium = plan === 'premium'
+  const isPremium = plan === 'premium' || plan === 'premium_plus'
 
   const { data: articlesData, error } = await supabase
     .from('legal_articles')

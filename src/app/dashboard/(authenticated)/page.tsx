@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import DashboardClient from './DashboardClient'
+import DashboardClient from '../DashboardClient'
 import { computeWeeklyStats } from './activity/weekly-stats'
-import { ageLabelFromDateOfBirth } from './dogs/dog-age'
+import { ageLabelFromDateOfBirth } from '../dogs/dog-age'
 
 function greeting(): string {
   const h = new Date().getHours()
