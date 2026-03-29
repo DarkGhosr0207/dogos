@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
+import { inputClass } from '@/lib/ui'
 
 export type LegalArticle = {
   id: string
@@ -32,6 +34,70 @@ function excerpt(text: string, max: number): string {
   const t = text.replace(/\s+/g, ' ').trim()
   if (t.length <= max) return t
   return `${t.slice(0, max)}…`
+}
+
+function countryBadgeClass(country: string): string {
+  switch (country) {
+    case 'DE':
+      return 'rounded-full border border-yellow-200 bg-yellow-50 px-2.5 py-0.5 text-xs text-yellow-700'
+    case 'ES':
+      return 'rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs text-red-600'
+    case 'UK':
+      return 'rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs text-blue-600'
+    case 'EU':
+      return 'rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs text-purple-600'
+    default:
+      return 'rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600'
+  }
+}
+
+const categoryPillClass =
+  'rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600'
+
+const filterPillDefault =
+  'cursor-pointer rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-[#2d7a4f] hover:text-[#2d7a4f]'
+const filterPillActive =
+  'cursor-pointer rounded-full border border-[#2d7a4f] bg-[#e8f5ed] px-3 py-1.5 text-sm font-medium text-[#2d7a4f]'
+
+const primaryBtn =
+  'rounded-xl bg-[#2d7a4f] px-5 py-2.5 font-medium text-white transition-colors hover:bg-[#236040] disabled:opacity-50'
+
+const articleCardStyle: CSSProperties = {
+  backgroundColor: '#ffffff',
+  border: '1px solid #e5e7eb',
+  borderRadius: '16px',
+  padding: '20px',
+  cursor: 'pointer',
+}
+
+const articleTitleStyle: CSSProperties = {
+  color: '#111827',
+  fontWeight: 600,
+  fontSize: '15px',
+}
+
+const articlePreviewStyle: CSSProperties = {
+  color: '#6b7280',
+  fontSize: '13px',
+  marginTop: '8px',
+}
+
+const filterLabelStyle: CSSProperties = {
+  color: '#374151',
+  fontWeight: 600,
+  fontSize: '12px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+}
+
+const pageTitleStyle: CSSProperties = {
+  color: '#111827',
+  fontSize: '24px',
+  fontWeight: 700,
+}
+
+const pageSubtitleStyle: CSSProperties = {
+  color: '#6b7280',
 }
 
 type LegalHubClientProps = {
@@ -109,7 +175,7 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
 
   if (selected) {
     return (
-      <div className="p-6">
+      <div style={{ color: '#111827' }}>
         <button
           type="button"
           onClick={() => {
@@ -118,40 +184,46 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
             setAiAnswer(null)
             setAiError(null)
           }}
-          className="mb-6 text-sm text-neutral-400 hover:text-neutral-200"
+          className="mb-6 flex items-center gap-1 text-sm text-[#2d7a4f] transition-colors hover:text-[#236040]"
         >
           ← Back to articles
         </button>
 
-        <div className="max-w-3xl space-y-4">
+        <div className="max-w-3xl space-y-6">
           <div className="flex flex-wrap gap-2">
-            <span className="rounded-full border border-white/15 bg-neutral-800/80 px-2.5 py-0.5 text-xs font-medium text-neutral-200">
+            <span className={countryBadgeClass(selected.country)}>
               {selected.country}
             </span>
-            <span className="rounded-full border border-white/15 bg-neutral-800/80 px-2.5 py-0.5 text-xs font-medium text-neutral-300">
+            <span className={categoryPillClass}>
               {categoryLabel(selected.category)}
             </span>
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">
+          <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
             {selected.title}
           </h1>
-          <div className="max-w-none text-sm leading-relaxed text-neutral-300">
+          <div className="max-w-none text-base leading-relaxed text-gray-600">
             {selected.content.split(/\n\n+/).map((para, i) => (
-              <p key={i} className="mb-4 last:mb-0">
+              <p key={i} className="mb-5 last:mb-0">
                 {para}
               </p>
             ))}
           </div>
           {selected.law_reference ? (
-            <p className="text-xs text-neutral-500">
-              <span className="font-medium text-neutral-400">Reference: </span>
-              {selected.law_reference}
-            </p>
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+                Law reference
+              </p>
+              <code className="inline-block rounded bg-gray-100 px-2 py-1 font-mono text-xs text-gray-600">
+                {selected.law_reference}
+              </code>
+            </div>
           ) : null}
 
-          <div className="mt-10 rounded-xl border border-white/10 bg-neutral-900/50 p-5">
-            <h2 className="text-sm font-semibold text-white">Ask AI about this article</h2>
-            <p className="mt-1 text-xs text-neutral-500">
+          <div className="mt-6 rounded-2xl border border-[#e8ede8] bg-[#f7f9f7] p-5">
+            <h2 className="text-sm font-semibold text-gray-900">
+              Ask AI about this article
+            </h2>
+            <p className="mt-1 text-xs text-gray-500">
               Answers are based on this article only. Not legal advice.
             </p>
             <textarea
@@ -159,10 +231,10 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
               onChange={(e) => setAiQuestion(e.target.value)}
               rows={3}
               placeholder="e.g. Does this apply if I move to another Bundesland?"
-              className="mt-3 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20"
+              className={`mt-4 ${inputClass}`}
             />
             {aiError ? (
-              <p className="mt-2 text-sm text-red-400" role="alert">
+              <p className="mt-2 text-sm text-red-500" role="alert">
                 {aiError}
               </p>
             ) : null}
@@ -170,17 +242,18 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
               type="button"
               onClick={() => void askAi()}
               disabled={aiLoading}
-              className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-200 disabled:opacity-50"
+              className={`mt-4 ${primaryBtn}`}
             >
               {aiLoading ? 'Thinking…' : 'Ask AI'}
             </button>
             {aiAnswer ? (
-              <div className="mt-4 rounded-lg border border-white/10 bg-neutral-950/40 p-4 text-sm text-neutral-200">
+              <div className="mt-3 rounded-xl border border-[#e8ede8] bg-white p-4 text-sm text-gray-700">
                 {aiAnswer}
               </div>
             ) : null}
-            <p className="mt-4 text-xs text-neutral-500">
-              This is not legal advice. Consult a qualified lawyer for your situation.
+            <p className="mt-4 text-xs text-gray-400">
+              This is not legal advice. Consult a qualified lawyer for your
+              situation.
             </p>
           </div>
         </div>
@@ -189,14 +262,15 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Legal Hub</h1>
-      <p className="mt-1 max-w-2xl text-sm text-neutral-400">
-        Country guides and obligations for dog owners—always verify with a lawyer.
+    <div style={{ color: '#111827' }}>
+      <h1 style={pageTitleStyle}>Legal Hub</h1>
+      <p className="mt-1 max-w-2xl text-sm" style={pageSubtitleStyle}>
+        Country guides and obligations for dog owners—always verify with a
+        lawyer.
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        <span className="mr-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+      <div className="mt-6 flex flex-wrap items-center gap-2">
+        <span className="mr-1" style={filterLabelStyle}>
           Country
         </span>
         {COUNTRIES.map((c) => (
@@ -204,11 +278,9 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
             key={c}
             type="button"
             onClick={() => setCountryFilter(c)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-              countryFilter === c
-                ? 'border-white/25 bg-white/15 text-white'
-                : 'border-white/10 bg-neutral-950/40 text-neutral-400 hover:border-white/15 hover:text-neutral-200'
-            }`}
+            className={
+              countryFilter === c ? filterPillActive : filterPillDefault
+            }
           >
             {c}
           </button>
@@ -216,7 +288,7 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="mr-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+        <span className="mr-1" style={filterLabelStyle}>
           Category
         </span>
         {CATEGORIES.map((c) => (
@@ -224,11 +296,9 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
             key={c.value}
             type="button"
             onClick={() => setCategoryFilter(c.value)}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-              categoryFilter === c.value
-                ? 'border-white/25 bg-white/15 text-white'
-                : 'border-white/10 bg-neutral-950/40 text-neutral-400 hover:border-white/15 hover:text-neutral-200'
-            }`}
+            className={
+              categoryFilter === c.value ? filterPillActive : filterPillDefault
+            }
           >
             {c.label}
           </button>
@@ -236,7 +306,7 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="mt-12 rounded-xl border border-dashed border-white/15 bg-neutral-900/40 px-6 py-16 text-center text-neutral-400">
+        <div className="mt-12 rounded-xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center text-gray-500 shadow-sm">
           No articles match your filters.
         </div>
       ) : (
@@ -246,20 +316,21 @@ export default function LegalHubClient({ articles }: LegalHubClientProps) {
               <button
                 type="button"
                 onClick={() => setSelected(a)}
-                className="flex h-full w-full flex-col rounded-xl border border-white/10 bg-neutral-900/50 p-5 text-left transition-colors hover:border-white/20 hover:bg-neutral-900/80"
+                className="flex h-full w-full flex-col text-left shadow-sm transition-all hover:opacity-95"
+                style={articleCardStyle}
               >
                 <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-white/15 bg-neutral-950/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-300">
+                  <span className={countryBadgeClass(a.country)}>
                     {a.country}
                   </span>
-                  <span className="rounded-full border border-white/10 bg-neutral-950/40 px-2 py-0.5 text-[10px] text-neutral-400">
+                  <span className={categoryPillClass}>
                     {categoryLabel(a.category)}
                   </span>
                 </div>
-                <h2 className="mt-3 text-base font-semibold text-neutral-50">
+                <h2 className="mt-3 line-clamp-3" style={articleTitleStyle}>
                   {a.title}
                 </h2>
-                <p className="mt-2 line-clamp-4 flex-1 text-sm text-neutral-400">
+                <p className="line-clamp-4 flex-1" style={articlePreviewStyle}>
                   {excerpt(a.content, 100)}
                 </p>
               </button>

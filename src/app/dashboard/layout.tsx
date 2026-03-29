@@ -18,23 +18,70 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-neutral-950 text-neutral-50">
-      <aside className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-neutral-900/60">
-        <div className="border-b border-white/10 px-4 py-4">
-          <span className="text-sm font-semibold tracking-tight">DogOS</span>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <aside
+        style={{
+          width: '240px',
+          flexShrink: 0,
+          backgroundColor: '#1a2e1f',
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          zIndex: 10,
+        }}
+      >
+        <div className="p-6">
+          <div className="flex items-center">
+            <span className="text-2xl" aria-hidden>
+              🐾
+            </span>
+            <div className="ml-2">
+              <p className="text-xl font-bold" style={{ color: '#ffffff' }}>
+                DogOS
+              </p>
+              <p
+                className="mt-0.5 text-xs"
+                style={{ color: '#8aab8f' }}
+              >
+                Pet Health Manager
+              </p>
+            </div>
+          </div>
         </div>
-        <DashboardNav />
-        <div className="mt-auto border-t border-white/10 p-3">
+        <div className="px-3 py-1">
+          <DashboardNav />
+        </div>
+        <div
+          className="mt-auto p-4"
+          style={{ borderTop: '1px solid #2d4a34' }}
+        >
           <p
-            className="truncate text-xs text-neutral-500"
+            className="mb-2 truncate text-xs"
+            style={{ color: '#8aab8f' }}
             title={user.email ?? ''}
           >
             {user.email}
           </p>
-          <SignOutButton className="mt-3 w-full" variant="sidebar" />
+          <SignOutButton variant="sidebar" />
         </div>
       </aside>
-      <main className="min-h-screen flex-1 overflow-auto">{children}</main>
+      <main
+        style={{
+          marginLeft: '240px',
+          flex: 1,
+          overflowY: 'auto',
+          backgroundColor: '#f7f9f7',
+          minHeight: '100vh',
+          padding: '32px',
+          color: '#111827',
+        }}
+      >
+        {children}
+      </main>
     </div>
   )
 }

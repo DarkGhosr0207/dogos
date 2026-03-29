@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import type { CSSProperties } from 'react'
 import {
   createReminder,
   deleteReminder,
   type CreateReminderFieldErrors,
 } from './actions'
+import { inputClass } from '@/lib/ui'
 
 export type ReminderDogOption = {
   id: string
@@ -42,11 +44,6 @@ function typeIcon(type: string): string {
   }
 }
 
-function typeLabel(type: string): string {
-  const row = REMINDER_TYPES.find((t) => t.value === type)
-  return row?.label ?? type
-}
-
 function startOfLocalDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
 }
@@ -61,7 +58,10 @@ function endOfLocalWeek(d: Date): Date {
   return end
 }
 
-function bucketForDue(dueAtIso: string, now: Date): 'overdue' | 'this_week' | 'upcoming' {
+function bucketForDue(
+  dueAtIso: string,
+  now: Date
+): 'overdue' | 'this_week' | 'upcoming' {
   const due = new Date(dueAtIso)
   const startToday = startOfLocalDay(now)
   const endWeek = endOfLocalWeek(now)
@@ -83,37 +83,120 @@ type RemindersClientProps = {
   reminders: ReminderWithDog[]
 }
 
+const reminderCardStyle: CSSProperties = {
+  backgroundColor: '#ffffff',
+  border: '1px solid #e5e7eb',
+  borderRadius: '12px',
+  padding: '14px 16px',
+  marginBottom: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+}
+
+const titleStyle: CSSProperties = {
+  color: '#111827',
+  fontWeight: 500,
+}
+
+const subStyle: CSSProperties = {
+  color: '#9ca3af',
+  fontSize: '12px',
+}
+
+const addReminderBtnStyle: CSSProperties = {
+  backgroundColor: '#2d7a4f',
+  color: '#ffffff',
+  padding: '8px 16px',
+  borderRadius: '10px',
+  fontWeight: 500,
+  border: 'none',
+  cursor: 'pointer',
+}
+
+const secondaryBtn =
+  'w-full rounded-xl border border-gray-200 bg-white px-5 py-2.5 font-medium text-gray-700 transition-colors hover:border-gray-300 disabled:opacity-50'
+const primaryBtnModal =
+  'w-full rounded-xl bg-[#2d7a4f] px-5 py-2.5 font-medium text-white transition-colors hover:bg-[#236040] disabled:opacity-50'
+
+const labelOverdue: CSSProperties = {
+  color: '#ef4444',
+  fontSize: '12px',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  marginBottom: '12px',
+}
+
+const labelThisWeek: CSSProperties = {
+  color: '#d97706',
+  fontSize: '12px',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  marginBottom: '12px',
+}
+
+const labelUpcoming: CSSProperties = {
+  color: '#9ca3af',
+  fontSize: '12px',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  marginBottom: '12px',
+}
+
+function barStyle(
+  bucket: 'overdue' | 'this_week' | 'upcoming'
+): CSSProperties {
+  const bg =
+    bucket === 'overdue'
+      ? '#f87171'
+      : bucket === 'this_week'
+        ? '#fbbf24'
+        : '#e5e7eb'
+  return {
+    width: '4px',
+    height: '32px',
+    borderRadius: '9999px',
+    flexShrink: 0,
+    backgroundColor: bg,
+  }
+}
+
 function ReminderListItem({
   r,
   pendingId,
   onDelete,
+  bucket,
 }: {
   r: ReminderWithDog
   pendingId: string | null
   onDelete: (id: string) => void
+  bucket: 'overdue' | 'this_week' | 'upcoming'
 }) {
   return (
-    <li className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-white/10 bg-neutral-950/40 px-4 py-3">
+    <li style={reminderCardStyle}>
+      <div style={barStyle(bucket)} aria-hidden />
+      <span
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base"
+        style={{ backgroundColor: '#f9fafb' }}
+        aria-hidden
+      >
+        {typeIcon(r.type)}
+      </span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="text-lg" aria-hidden>
-            {typeIcon(r.type)}
-          </span>
-          <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-            {typeLabel(r.type)}
-          </span>
-        </div>
-        <p className="mt-1 font-medium text-neutral-100">{r.title}</p>
-        <p className="mt-0.5 text-sm text-neutral-400">{r.dog_name}</p>
-        <p className="mt-1 text-xs text-neutral-500">
-          Due {formatDue(r.due_at)}
+        <p style={titleStyle}>{r.title}</p>
+        <p style={subStyle}>
+          {r.dog_name} · Due {formatDue(r.due_at)}
         </p>
       </div>
       <button
         type="button"
         onClick={() => onDelete(r.id)}
         disabled={pendingId === r.id}
-        className="shrink-0 text-xs font-medium text-red-400 hover:text-red-300 disabled:opacity-50"
+        className="shrink-0 text-sm disabled:opacity-50"
+        style={{ color: '#f87171', cursor: 'pointer', border: 'none', background: 'none', padding: 0 }}
       >
         {pendingId === r.id ? '…' : 'Delete'}
       </button>
@@ -122,44 +205,43 @@ function ReminderListItem({
 }
 
 function ReminderSection({
-  title,
+  variant,
   list,
-  accent,
   pendingId,
   onDelete,
 }: {
-  title: string
+  variant: 'overdue' | 'this_week' | 'upcoming'
   list: ReminderWithDog[]
-  accent: 'red' | 'yellow' | 'white'
   pendingId: string | null
   onDelete: (id: string) => void
 }) {
   if (list.length === 0) return null
-  const border =
-    accent === 'red'
-      ? 'border-red-500/30'
-      : accent === 'yellow'
-        ? 'border-yellow-500/25'
-        : 'border-white/10'
-  const titleColor =
-    accent === 'red'
-      ? 'text-red-300'
-      : accent === 'yellow'
-        ? 'text-yellow-200/90'
-        : 'text-neutral-200'
+
+  const headingStyle =
+    variant === 'overdue'
+      ? labelOverdue
+      : variant === 'this_week'
+        ? labelThisWeek
+        : labelUpcoming
+
+  const labelText =
+    variant === 'overdue'
+      ? 'OVERDUE'
+      : variant === 'this_week'
+        ? 'THIS WEEK'
+        : 'UPCOMING'
 
   return (
-    <section className="space-y-3">
-      <h2 className={`text-sm font-semibold uppercase tracking-wide ${titleColor}`}>
-        {title}
-      </h2>
-      <ul className={`space-y-2 rounded-xl border ${border} bg-neutral-900/30 p-3`}>
+    <section>
+      <h2 style={headingStyle}>{labelText}</h2>
+      <ul>
         {list.map((r) => (
           <ReminderListItem
             key={r.id}
             r={r}
             pendingId={pendingId}
             onDelete={onDelete}
+            bucket={variant}
           />
         ))}
       </ul>
@@ -234,50 +316,60 @@ export default function RemindersClient({
     }
   }
 
+  const labelClass = 'block text-sm font-medium text-gray-700'
+
   return (
-    <div className="p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div style={{ color: '#111827' }}>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Reminders</h1>
-          <p className="mt-1 text-sm text-neutral-400">
+          <h1
+            style={{
+              color: '#111827',
+              fontSize: '24px',
+              fontWeight: 700,
+            }}
+          >
+            Reminders
+          </h1>
+          <p
+            className="mt-1"
+            style={{ color: '#6b7280', fontSize: '14px' }}
+          >
             Vaccines, meds, and visits—grouped by urgency.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setFormOpen(true)}
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-200"
+          style={addReminderBtnStyle}
         >
           Add reminder
         </button>
       </div>
 
       {reminders.length === 0 ? (
-        <div className="mt-12 rounded-xl border border-dashed border-white/15 bg-neutral-900/40 px-6 py-16 text-center">
-          <p className="text-neutral-400">
+        <div className="mt-12 rounded-xl border border-dashed border-gray-200 px-6 py-16 text-center shadow-sm">
+          <p className="text-gray-500">
             No reminders yet. Add your first reminder!
           </p>
         </div>
       ) : (
-        <div className="mt-8 max-w-2xl space-y-8">
+        <div className="max-w-2xl space-y-10">
           <ReminderSection
-            title="Overdue"
+            variant="overdue"
             list={grouped.overdue}
-            accent="red"
             pendingId={pendingId}
             onDelete={handleDelete}
           />
           <ReminderSection
-            title="This week"
+            variant="this_week"
             list={grouped.thisWeek}
-            accent="yellow"
             pendingId={pendingId}
             onDelete={handleDelete}
           />
           <ReminderSection
-            title="Upcoming"
+            variant="upcoming"
             list={grouped.upcoming}
-            accent="white"
             pendingId={pendingId}
             onDelete={handleDelete}
           />
@@ -286,23 +378,23 @@ export default function RemindersClient({
 
       {formOpen ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="add-reminder-title"
         >
-          <div className="w-full max-w-md rounded-xl border border-white/10 bg-neutral-900 p-6 shadow-xl">
-            <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-6 flex items-start justify-between gap-4">
               <h2
                 id="add-reminder-title"
-                className="text-lg font-semibold text-white"
+                className="text-lg font-bold text-gray-900"
               >
                 Add reminder
               </h2>
               <button
                 type="button"
                 onClick={() => setFormOpen(false)}
-                className="rounded-lg px-2 py-1 text-sm text-neutral-400 hover:bg-white/5 hover:text-neutral-200"
+                className="text-gray-400 transition-colors hover:text-gray-600"
                 aria-label="Close"
               >
                 ✕
@@ -310,17 +402,14 @@ export default function RemindersClient({
             </div>
 
             {formError ? (
-              <p className="mb-4 text-sm text-red-400" role="alert">
+              <p className="mb-4 text-sm text-red-500" role="alert">
                 {formError}
               </p>
             ) : null}
 
-            <form action={onCreate} className="space-y-4">
+            <form action={onCreate} className="space-y-5">
               <div>
-                <label
-                  htmlFor="reminder-dog"
-                  className="block text-sm text-neutral-400"
-                >
+                <label className={labelClass} htmlFor="reminder-dog">
                   Dog
                 </label>
                 <select
@@ -329,7 +418,7 @@ export default function RemindersClient({
                   required
                   disabled={formPending || dogs.length === 0}
                   defaultValue={dogs[0]?.id ?? ''}
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+                  className={`mt-2 ${inputClass}`}
                 >
                   {dogs.length === 0 ? (
                     <option value="">No dogs</option>
@@ -342,15 +431,14 @@ export default function RemindersClient({
                   )}
                 </select>
                 {fieldErrors.dog_id ? (
-                  <p className="mt-1 text-xs text-red-400">{fieldErrors.dog_id}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    {fieldErrors.dog_id}
+                  </p>
                 ) : null}
               </div>
 
               <div>
-                <label
-                  htmlFor="reminder-type"
-                  className="block text-sm text-neutral-400"
-                >
+                <label className={labelClass} htmlFor="reminder-type">
                   Type
                 </label>
                 <select
@@ -359,7 +447,7 @@ export default function RemindersClient({
                   required
                   disabled={formPending}
                   defaultValue="vaccine"
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+                  className={`mt-2 ${inputClass}`}
                 >
                   {REMINDER_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -368,15 +456,12 @@ export default function RemindersClient({
                   ))}
                 </select>
                 {fieldErrors.type ? (
-                  <p className="mt-1 text-xs text-red-400">{fieldErrors.type}</p>
+                  <p className="mt-1 text-xs text-red-500">{fieldErrors.type}</p>
                 ) : null}
               </div>
 
               <div>
-                <label
-                  htmlFor="reminder-title"
-                  className="block text-sm text-neutral-400"
-                >
+                <label className={labelClass} htmlFor="reminder-title">
                   Title
                 </label>
                 <input
@@ -386,18 +471,17 @@ export default function RemindersClient({
                   autoComplete="off"
                   disabled={formPending}
                   placeholder="e.g. Rabies booster"
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+                  className={`mt-2 ${inputClass}`}
                 />
                 {fieldErrors.title ? (
-                  <p className="mt-1 text-xs text-red-400">{fieldErrors.title}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    {fieldErrors.title}
+                  </p>
                 ) : null}
               </div>
 
               <div>
-                <label
-                  htmlFor="reminder-due"
-                  className="block text-sm text-neutral-400"
-                >
+                <label className={labelClass} htmlFor="reminder-due">
                   Due date
                 </label>
                 <input
@@ -407,26 +491,28 @@ export default function RemindersClient({
                   required
                   disabled={formPending}
                   defaultValue={defaultDueValue}
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:invert"
+                  className={`mt-2 ${inputClass}`}
                 />
                 {fieldErrors.due_at ? (
-                  <p className="mt-1 text-xs text-red-400">{fieldErrors.due_at}</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    {fieldErrors.due_at}
+                  </p>
                 ) : null}
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className="flex flex-col gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setFormOpen(false)}
                   disabled={formPending}
-                  className="rounded-lg px-4 py-2 text-sm text-neutral-300 hover:bg-white/5 disabled:opacity-50"
+                  className={`w-full ${secondaryBtn}`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formPending || dogs.length === 0}
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+                  className={`w-full ${primaryBtnModal} mt-4`}
                 >
                   {formPending ? 'Saving…' : 'Save'}
                 </button>

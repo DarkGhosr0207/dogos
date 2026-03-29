@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import AddDogTrigger from './add-dog-trigger'
+import DogCard from './dog-card'
 import { ageLabelFromDateOfBirth } from './dog-age'
 
 export type DogRow = {
@@ -29,11 +30,13 @@ export default async function DogsPage() {
   const list: DogRow[] = dogs ?? []
 
   return (
-    <div className="p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">My Dogs</h1>
-          <p className="mt-1 text-sm text-neutral-400">
+          <h1 className="text-2xl font-bold" style={{ color: '#111827' }}>
+            My Dogs
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: '#6b7280' }}>
             Your dogs and basic profile details.
           </p>
         </div>
@@ -41,36 +44,21 @@ export default async function DogsPage() {
       </div>
 
       {error ? (
-        <p className="mt-8 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <p className="mt-8 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           Could not load dogs: {error.message}
         </p>
       ) : list.length === 0 ? (
-        <div className="mt-12 rounded-xl border border-dashed border-white/15 bg-neutral-900/40 px-6 py-16 text-center">
-          <p className="text-neutral-400">No dogs yet. Add your first dog!</p>
+        <div className="mt-12 rounded-xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
+          <p className="text-gray-500">No dogs yet. Add your first dog!</p>
         </div>
       ) : (
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((dog) => (
-            <li
+            <DogCard
               key={dog.id}
-              className="rounded-xl border border-white/10 bg-neutral-900/50 p-5"
-            >
-              <h2 className="text-lg font-semibold text-white">{dog.name}</h2>
-              <dl className="mt-3 space-y-2 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-neutral-500">Breed</dt>
-                  <dd className="text-neutral-200 text-right">
-                    {dog.breed?.trim() ? dog.breed : '—'}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-neutral-500">Age</dt>
-                  <dd className="text-neutral-200 text-right">
-                    {ageLabelFromDateOfBirth(dog.date_of_birth)}
-                  </dd>
-                </div>
-              </dl>
-            </li>
+              dog={dog}
+              ageLabel={ageLabelFromDateOfBirth(dog.date_of_birth)}
+            />
           ))}
         </ul>
       )}

@@ -3,8 +3,27 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { inputClass } from '@/lib/ui'
+import type { CSSProperties } from 'react'
 
 const supabase = createClient()
+
+const labelStyle: CSSProperties = {
+  color: '#374151',
+  fontWeight: 500,
+  fontSize: '14px',
+}
+
+const signInBtnStyle: CSSProperties = {
+  backgroundColor: '#2d7a4f',
+  color: '#ffffff',
+  width: '100%',
+  padding: '12px',
+  borderRadius: '10px',
+  fontWeight: 600,
+  border: 'none',
+  cursor: 'pointer',
+}
 
 export default function Page() {
   const router = useRouter()
@@ -74,55 +93,73 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-xl border border-white/10 bg-neutral-900/40 p-6">
-        <h1 className="text-2xl font-semibold">DogOS</h1>
-        <p className="text-sm text-neutral-400 mt-1 mb-6">
-          Sign in or create an account.
-        </p>
+    <div className="flex min-h-screen flex-col bg-[#f7f9f7] lg:flex-row">
+      <div className="mx-auto flex max-w-md flex-1 flex-col justify-center px-8">
+        <div className="w-full" style={{ backgroundColor: '#ffffff' }}>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl" aria-hidden>
+                🐾
+              </span>
+              <h1 className="text-3xl font-bold text-gray-900">DogOS</h1>
+            </div>
+            <p className="mb-8 mt-1 text-gray-500">
+              Your dog&apos;s health companion
+            </p>
+          </div>
 
-        {error ? (
-          <p className="text-sm text-red-400 mb-4" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {message ? (
-          <p className="text-sm text-emerald-300 mb-4" role="status">
-            {message}
-          </p>
-        ) : null}
+          {error ? (
+            <p
+              className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-500"
+              role="alert"
+            >
+              {error}
+            </p>
+          ) : null}
+          {message ? (
+            <p
+              className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+              role="status"
+            >
+              {message}
+            </p>
+          ) : null}
 
-        <div className="space-y-4">
-          <label className="block">
-            <span className="text-sm text-neutral-300">Email</span>
-            <input
-              className="mt-1 w-full rounded-lg bg-neutral-950/50 border border-white/10 px-3 py-2 text-neutral-50 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/20"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-          </label>
+          <div className="space-y-4">
+            <label className="block">
+              <span className="mb-1.5 block" style={labelStyle}>
+                Email
+              </span>
+              <input
+                className={inputClass}
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </label>
 
-          <label className="block">
-            <span className="text-sm text-neutral-300">Password</span>
-            <input
-              className="mt-1 w-full rounded-lg bg-neutral-950/50 border border-white/10 px-3 py-2 text-neutral-50 placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-white/20"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </label>
+            <label className="block">
+              <span className="mb-1.5 block" style={labelStyle}>
+                Password
+              </span>
+              <input
+                className={inputClass}
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </label>
 
-          <div className="grid grid-cols-2 gap-3 pt-2">
             <button
               type="button"
               onClick={signIn}
               disabled={busy}
-              className="h-11 rounded-lg bg-white text-neutral-950 font-medium disabled:opacity-50"
+              className="disabled:opacity-50"
+              style={signInBtnStyle}
             >
               {busy ? 'Please wait…' : 'Sign in'}
             </button>
@@ -130,12 +167,59 @@ export default function Page() {
               type="button"
               onClick={signUp}
               disabled={busy}
-              className="h-11 rounded-lg border border-white/10 bg-neutral-950/30 text-neutral-50 font-medium disabled:opacity-50"
+              className="mt-2 w-full rounded-xl border border-gray-200 bg-white px-5 py-3 font-medium text-gray-700 transition-colors hover:border-gray-300 disabled:opacity-50"
             >
               {busy ? 'Please wait…' : 'Sign up'}
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="hidden min-h-screen flex-1 flex-col justify-center bg-[#1a2e1f] p-12 lg:flex">
+        <h2 className="mb-3 text-3xl font-bold text-white">
+          Everything your dog needs.
+        </h2>
+        <p className="mb-10 text-base text-[#8aab8f]">
+          DogOS helps you track health, compliance, and care—in one calm,
+          organized place.
+        </p>
+        <ul>
+          <li className="mb-3 flex items-start gap-3 rounded-2xl bg-[#2d4a34] p-5">
+            <span className="text-2xl leading-none" aria-hidden>
+              🩺
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-white">
+                AI Symptom Checker
+              </p>
+              <p className="mt-1 text-xs text-[#8aab8f]">
+                Structured guidance from signs you observe—share with your vet.
+              </p>
+            </div>
+          </li>
+          <li className="mb-3 flex items-start gap-3 rounded-2xl bg-[#2d4a34] p-5">
+            <span className="text-2xl leading-none" aria-hidden>
+              ⚖️
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-white">Legal Hub</p>
+              <p className="mt-1 text-xs text-[#8aab8f]">
+                Country guides for owners—plus AI Q&amp;A on each article.
+              </p>
+            </div>
+          </li>
+          <li className="mb-3 flex items-start gap-3 rounded-2xl bg-[#2d4a34] p-5">
+            <span className="text-2xl leading-none" aria-hidden>
+              🔔
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-white">Reminders</p>
+              <p className="mt-1 text-xs text-[#8aab8f]">
+                Vaccines, meds, and visits—never miss what matters.
+              </p>
+            </div>
+          </li>
+        </ul>
       </div>
     </div>
   )

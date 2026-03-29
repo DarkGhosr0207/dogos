@@ -30,8 +30,8 @@ export default function SignOutButton({
 
   const base =
     variant === 'sidebar'
-      ? 'rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-xs font-medium text-neutral-200 hover:bg-white/5 disabled:opacity-50'
-      : 'rounded-lg border border-white/10 bg-neutral-950/30 px-4 py-2 text-sm text-neutral-50 disabled:opacity-50'
+      ? 'cursor-pointer text-sm transition-colors disabled:opacity-50'
+      : 'rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:border-gray-300 disabled:opacity-50'
 
   return (
     <button
@@ -39,6 +39,11 @@ export default function SignOutButton({
       onClick={signOut}
       disabled={busy}
       className={`${base} ${className}`.trim()}
+      style={
+        variant === 'sidebar'
+          ? { color: '#8aab8f' }
+          : undefined
+      }
     >
       {busy ? 'Signing out…' : 'Sign out'}
     </button>

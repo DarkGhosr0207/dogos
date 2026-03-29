@@ -2,37 +2,59 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 const items = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/dashboard/dogs', label: 'My Dogs' },
-  { href: '/dashboard/reminders', label: 'Reminders' },
-  { href: '/dashboard/symptoms', label: 'Symptoms' },
-  { href: '/dashboard/legal', label: 'Legal Hub' },
-  { href: '/dashboard/vet', label: 'Find Vet' },
+  { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
+  { href: '/dashboard/dogs', label: 'My Dogs', icon: '🐾' },
+  { href: '/dashboard/reminders', label: 'Reminders', icon: '🔔' },
+  { href: '/dashboard/symptoms', label: 'Symptoms', icon: '🩺' },
+  { href: '/dashboard/legal', label: 'Legal Hub', icon: '⚖️' },
+  { href: '/dashboard/vet', label: 'Find Vet', icon: '🏥' },
 ] as const
+
+const forestHover = {
+  backgroundColor: '#2d4a34',
+  color: '#ffffff',
+} as const
+
+const defaultNav = {
+  color: '#8aab8f',
+} as const
+
+const itemBase =
+  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors'
 
 export default function DashboardNav() {
   const pathname = usePathname()
+  const [hoveredHref, setHoveredHref] = useState<string | null>(null)
 
   return (
-    <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="Dashboard">
-      {items.map(({ href, label }) => {
+    <nav className="flex flex-1 flex-col gap-0.5" aria-label="Dashboard">
+      {items.map(({ href, label, icon }) => {
         const isActive =
           href === '/dashboard'
             ? pathname === '/dashboard'
             : pathname === href || pathname.startsWith(`${href}/`)
 
+        const isHover = hoveredHref === href
+        const style =
+          isActive || isHover
+            ? forestHover
+            : defaultNav
+
         return (
           <Link
             key={href}
             href={href}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              isActive
-                ? 'bg-white/10 text-white'
-                : 'text-neutral-400 hover:bg-white/5 hover:text-neutral-200'
-            }`}
+            className={`${itemBase} ${isActive ? 'font-medium' : ''}`}
+            style={style}
+            onMouseEnter={() => setHoveredHref(href)}
+            onMouseLeave={() => setHoveredHref(null)}
           >
+            <span className="text-lg leading-none" aria-hidden>
+              {icon}
+            </span>
             {label}
           </Link>
         )

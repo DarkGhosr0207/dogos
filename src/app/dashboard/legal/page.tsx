@@ -18,11 +18,13 @@ export default async function LegalHubPage() {
   return (
     <>
       {error ? (
-        <div className="border-b border-red-500/20 bg-red-950/30 px-6 py-3 text-sm text-red-300">
+        <div className="border-b border-red-200 bg-red-50 px-6 py-3 text-sm text-red-600">
           Could not load articles: {error.message}
         </div>
       ) : null}
-      <LegalHubClient articles={articles} />
+      <div className="dashboard-content" style={{ color: '#111827' }}>
+        <LegalHubClient articles={articles} />
+      </div>
     </>
   )
 }

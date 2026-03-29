@@ -39,16 +39,18 @@ export default async function RemindersPage() {
   return (
     <>
       {dogsError ? (
-        <div className="border-b border-red-500/20 bg-red-950/30 px-6 py-3 text-sm text-red-300">
+        <div className="border-b border-red-200 bg-red-50 px-6 py-3 text-sm text-red-600">
           Could not load dogs: {dogsError.message}
         </div>
       ) : null}
       {remindersError ? (
-        <div className="border-b border-red-500/20 bg-red-950/30 px-6 py-3 text-sm text-red-300">
+        <div className="border-b border-red-200 bg-red-50 px-6 py-3 text-sm text-red-600">
           Could not load reminders: {remindersError.message}
         </div>
       ) : null}
-      <RemindersClient dogs={dogs} reminders={reminders} />
+      <div className="dashboard-content" style={{ color: '#111827' }}>
+        <RemindersClient dogs={dogs} reminders={reminders} />
+      </div>
     </>
   )
 }

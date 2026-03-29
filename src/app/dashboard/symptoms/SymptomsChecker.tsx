@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
+import { inputClass } from '@/lib/ui'
 
 const TAGS = [
   'Vomiting',
@@ -29,23 +31,92 @@ export type SymptomDogOption = {
   name: string
 }
 
-function triageCardClasses(level: TriageLevel): string {
+function triageIcon(level: TriageLevel): string {
   switch (level) {
     case 'emergency':
-      return 'border-red-500/40 bg-red-950/70 text-red-50'
+      return '🚨'
     case 'vet_asap':
-      return 'border-amber-500/40 bg-amber-950/60 text-amber-50'
+      return '⚠️'
     case 'monitor':
-      return 'border-yellow-500/35 bg-yellow-950/50 text-yellow-50'
+      return '👁️'
     case 'ok':
-      return 'border-emerald-500/35 bg-emerald-950/55 text-emerald-50'
+      return '✅'
     default:
-      return 'border-white/10 bg-neutral-900/60'
+      return '•'
+  }
+}
+
+function triageShellClass(level: TriageLevel): string {
+  switch (level) {
+    case 'emergency':
+      return 'border border-red-200 bg-red-50 rounded-2xl p-5'
+    case 'vet_asap':
+      return 'border border-amber-200 bg-amber-50 rounded-2xl p-5'
+    case 'monitor':
+      return 'border border-blue-200 bg-blue-50 rounded-2xl p-5'
+    case 'ok':
+      return 'border border-[#b8ddc8] bg-[#e8f5ed] rounded-2xl p-5'
+    default:
+      return 'border border-gray-200 bg-white rounded-2xl p-5'
+  }
+}
+
+function triageTitleClass(level: TriageLevel): string {
+  switch (level) {
+    case 'emergency':
+      return 'font-bold text-lg text-red-600'
+    case 'vet_asap':
+      return 'font-bold text-lg text-amber-700'
+    case 'monitor':
+      return 'font-bold text-lg text-blue-700'
+    case 'ok':
+      return 'font-bold text-lg text-[#2d7a4f]'
+    default:
+      return 'font-bold text-lg text-gray-900'
   }
 }
 
 type SymptomsCheckerProps = {
   dogs: SymptomDogOption[]
+}
+
+const fieldLabelStyle: CSSProperties = {
+  color: '#374151',
+  fontWeight: 500,
+  fontSize: '14px',
+  display: 'block',
+}
+
+const tagDefaultStyle: CSSProperties = {
+  border: '1px solid #e5e7eb',
+  borderRadius: '20px',
+  padding: '6px 14px',
+  fontSize: '14px',
+  cursor: 'pointer',
+  backgroundColor: '#ffffff',
+  color: '#374151',
+}
+
+const tagSelectedStyle: CSSProperties = {
+  border: '1px solid #2d7a4f',
+  borderRadius: '20px',
+  padding: '6px 14px',
+  fontSize: '14px',
+  cursor: 'pointer',
+  backgroundColor: '#dcfce7',
+  color: '#166534',
+}
+
+const analyzeBtnStyle: CSSProperties = {
+  backgroundColor: '#2d7a4f',
+  color: '#ffffff',
+  width: '100%',
+  padding: '12px',
+  borderRadius: '10px',
+  fontWeight: 600,
+  border: 'none',
+  cursor: 'pointer',
+  fontSize: '15px',
 }
 
 export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
@@ -140,25 +211,28 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">
+    <div style={{ color: '#111827' }}>
+      <h1
+        style={{
+          color: '#111827',
+          fontSize: '24px',
+          fontWeight: 700,
+        }}
+      >
         AI Symptom Checker
       </h1>
-      <p className="mt-1 max-w-2xl text-sm text-neutral-400">
+      <p className="mt-1 max-w-2xl" style={{ color: '#6b7280', fontSize: '14px' }}>
         Describe what you&apos;re seeing. This tool suggests how urgently to
         seek care—it does not replace a vet.
       </p>
 
       <div className="mt-8 max-w-2xl space-y-6">
         <div>
-          <label
-            htmlFor="symptom-dog"
-            className="block text-sm font-medium text-neutral-300"
-          >
+          <label style={fieldLabelStyle} htmlFor="symptom-dog">
             Dog
           </label>
           {dogs.length === 0 ? (
-            <p className="mt-2 text-sm text-amber-300/90">
+            <p className="mt-2 text-sm text-amber-700">
               No dogs yet. Add a dog under My Dogs first.
             </p>
           ) : (
@@ -166,7 +240,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
               id="symptom-dog"
               value={dogId}
               onChange={(e) => setDogId(e.target.value)}
-              className="mt-2 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-white/20"
+              className={`mt-2 ${inputClass}`}
             >
               {dogs.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -178,7 +252,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
         </div>
 
         <div>
-          <p className="text-sm font-medium text-neutral-300">Symptoms</p>
+          <p style={fieldLabelStyle}>Symptoms</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {TAGS.map((tag) => {
               const on = selectedTags.has(tag)
@@ -187,11 +261,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                    on
-                      ? 'border-white/25 bg-white/15 text-white'
-                      : 'border-white/10 bg-neutral-950/40 text-neutral-400 hover:border-white/15 hover:text-neutral-200'
-                  }`}
+                  style={on ? tagSelectedStyle : tagDefaultStyle}
                 >
                   {tag}
                 </button>
@@ -201,10 +271,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
         </div>
 
         <div>
-          <label
-            htmlFor="symptom-notes"
-            className="block text-sm font-medium text-neutral-300"
-          >
+          <label style={fieldLabelStyle} htmlFor="symptom-notes">
             Additional description
           </label>
           <textarea
@@ -213,16 +280,13 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
             onChange={(e) => setNotes(e.target.value)}
             rows={4}
             placeholder="Anything else? (behavior, appetite, recent changes…)"
-            className="mt-2 w-full resize-y rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20"
+            className={`mt-2 resize-y ${inputClass}`}
           />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label
-              htmlFor="symptom-duration"
-              className="block text-sm font-medium text-neutral-300"
-            >
+            <label style={fieldLabelStyle} htmlFor="symptom-duration">
               Duration
             </label>
             <select
@@ -231,7 +295,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
               onChange={(e) =>
                 setDuration(e.target.value as (typeof DURATION_OPTIONS)[number])
               }
-              className="mt-2 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-white/20"
+              className={`mt-2 ${inputClass}`}
             >
               {DURATION_OPTIONS.map((o) => (
                 <option key={o} value={o}>
@@ -241,10 +305,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
             </select>
           </div>
           <div>
-            <label
-              htmlFor="symptom-severity"
-              className="block text-sm font-medium text-neutral-300"
-            >
+            <label style={fieldLabelStyle} htmlFor="symptom-severity">
               Severity
             </label>
             <select
@@ -253,7 +314,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
               onChange={(e) =>
                 setSeverity(e.target.value as (typeof SEVERITY_OPTIONS)[number])
               }
-              className="mt-2 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-white/20"
+              className={`mt-2 ${inputClass}`}
             >
               {SEVERITY_OPTIONS.map((o) => (
                 <option key={o} value={o}>
@@ -265,7 +326,7 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
         </div>
 
         {analyzeError ? (
-          <p className="text-sm text-red-400" role="alert">
+          <p className="text-sm text-red-500" role="alert">
             {analyzeError}
           </p>
         ) : null}
@@ -274,32 +335,47 @@ export default function SymptomsChecker({ dogs }: SymptomsCheckerProps) {
           type="button"
           onClick={() => void analyze()}
           disabled={analyzeLoading || dogs.length === 0 || !dogId}
-          className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-200 disabled:opacity-50"
+          className="mt-4 disabled:opacity-50"
+          style={analyzeBtnStyle}
         >
           {analyzeLoading ? 'Analyzing…' : 'Analyze'}
         </button>
+
+        {analyzeLoading ? (
+          <p className="flex items-center gap-2 text-sm text-[#2d7a4f]">
+            <span className="inline-block h-4 w-4 animate-pulse rounded-full bg-[#2d7a4f]/40" />
+            Working…
+          </p>
+        ) : null}
       </div>
 
       {result ? (
-        <div
-          className={`mt-10 max-w-2xl rounded-xl border p-5 ${triageCardClasses(result.triage_level)}`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide opacity-80">
-            {result.triage_level.replace('_', ' ')}
-          </p>
-          <h2 className="mt-2 text-xl font-semibold">{result.title}</h2>
-          <p className="mt-3 text-sm leading-relaxed opacity-95">
-            {result.explanation}
-          </p>
-          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm opacity-95">
-            {result.actions.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+        <div className={`mt-10 max-w-2xl ${triageShellClass(result.triage_level)}`}>
+          <div className="flex items-start gap-3">
+            <span className="text-2xl leading-none" aria-hidden>
+              {triageIcon(result.triage_level)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {result.triage_level.replace('_', ' ')}
+              </p>
+              <h2 className={`mt-1 leading-snug ${triageTitleClass(result.triage_level)}`}>
+                {result.title}
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                {result.explanation}
+              </p>
+              <div className="mt-3 space-y-1 text-sm text-gray-700">
+                {result.actions.map((item) => (
+                  <p key={item}>→ {item}</p>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       ) : null}
 
-      <p className="mt-10 max-w-2xl text-xs text-neutral-500">
+      <p className="mt-10 max-w-2xl text-xs text-gray-400">
         This is not a veterinary diagnosis. Always consult a licensed vet.
       </p>
     </div>

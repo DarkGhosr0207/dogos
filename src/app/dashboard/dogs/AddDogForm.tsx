@@ -3,12 +3,20 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createDog, type CreateDogFieldErrors } from './actions'
+import { inputClass } from '@/lib/ui'
 
 type AddDogFormProps = {
   onClose: () => void
 }
 
 const emptyErrors: CreateDogFieldErrors = {}
+
+const labelClass = 'block text-sm font-medium text-gray-700'
+
+const primaryBtn =
+  'w-full rounded-xl bg-[#2d7a4f] px-5 py-2.5 font-medium text-white transition-colors hover:bg-[#236040] disabled:opacity-50'
+const secondaryBtn =
+  'w-full rounded-xl border border-gray-200 bg-white px-5 py-2.5 font-medium text-gray-700 transition-colors hover:border-gray-300 disabled:opacity-50'
 
 export default function AddDogForm({ onClose }: AddDogFormProps) {
   const router = useRouter()
@@ -45,20 +53,20 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="add-dog-title"
     >
-      <div className="w-full max-w-md rounded-xl border border-white/10 bg-neutral-900 p-6 shadow-xl">
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <h2 id="add-dog-title" className="text-lg font-semibold text-white">
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <h2 id="add-dog-title" className="text-lg font-bold text-gray-900">
             Add dog
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg px-2 py-1 text-sm text-neutral-400 hover:bg-white/5 hover:text-neutral-200"
+            className="text-gray-400 transition-colors hover:text-gray-600"
             aria-label="Close"
           >
             ✕
@@ -66,15 +74,15 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
         </div>
 
         {formError ? (
-          <p className="mb-4 text-sm text-red-400" role="alert">
+          <p className="mb-4 text-sm text-red-500" role="alert">
             {formError}
           </p>
         ) : null}
 
-        <form action={submit} className="space-y-4">
+        <form action={submit} className="space-y-5">
           <div>
-            <label className="block text-sm text-neutral-400" htmlFor="name">
-              Name <span className="text-red-400">*</span>
+            <label className={labelClass} htmlFor="name">
+              Name <span className="text-red-500">*</span>
             </label>
             <input
               id="name"
@@ -82,16 +90,16 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
               required
               autoComplete="off"
               disabled={pending}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+              className={`mt-2 ${inputClass}`}
               placeholder="Buddy"
             />
             {fieldErrors.name ? (
-              <p className="mt-1 text-xs text-red-400">{fieldErrors.name}</p>
+              <p className="mt-1 text-xs text-red-500">{fieldErrors.name}</p>
             ) : null}
           </div>
 
           <div>
-            <label className="block text-sm text-neutral-400" htmlFor="breed">
+            <label className={labelClass} htmlFor="breed">
               Breed
             </label>
             <input
@@ -99,18 +107,15 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
               name="breed"
               autoComplete="off"
               disabled={pending}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+              className={`mt-2 ${inputClass}`}
             />
             {fieldErrors.breed ? (
-              <p className="mt-1 text-xs text-red-400">{fieldErrors.breed}</p>
+              <p className="mt-1 text-xs text-red-500">{fieldErrors.breed}</p>
             ) : null}
           </div>
 
           <div>
-            <label
-              className="block text-sm text-neutral-400"
-              htmlFor="date_of_birth"
-            >
+            <label className={labelClass} htmlFor="date_of_birth">
               Date of birth
             </label>
             <input
@@ -118,17 +123,17 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
               name="date_of_birth"
               type="date"
               disabled={pending}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-neutral-50 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:invert"
+              className={`mt-2 ${inputClass}`}
             />
             {fieldErrors.date_of_birth ? (
-              <p className="mt-1 text-xs text-red-400">
+              <p className="mt-1 text-xs text-red-500">
                 {fieldErrors.date_of_birth}
               </p>
             ) : null}
           </div>
 
           <div>
-            <label className="block text-sm text-neutral-400" htmlFor="sex">
+            <label className={labelClass} htmlFor="sex">
               Sex
             </label>
             <select
@@ -136,22 +141,19 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
               name="sex"
               defaultValue=""
               disabled={pending}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-neutral-50 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+              className={`mt-2 ${inputClass}`}
             >
               <option value="">—</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
             </select>
             {fieldErrors.sex ? (
-              <p className="mt-1 text-xs text-red-400">{fieldErrors.sex}</p>
+              <p className="mt-1 text-xs text-red-500">{fieldErrors.sex}</p>
             ) : null}
           </div>
 
           <div>
-            <label
-              className="block text-sm text-neutral-400"
-              htmlFor="weight_kg"
-            >
+            <label className={labelClass} htmlFor="weight_kg">
               Weight (kg)
             </label>
             <input
@@ -162,20 +164,17 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
               min="0"
               autoComplete="off"
               disabled={pending}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+              className={`mt-2 ${inputClass}`}
             />
             {fieldErrors.weight_kg ? (
-              <p className="mt-1 text-xs text-red-400">
+              <p className="mt-1 text-xs text-red-500">
                 {fieldErrors.weight_kg}
               </p>
             ) : null}
           </div>
 
           <div>
-            <label
-              className="block text-sm text-neutral-400"
-              htmlFor="microchip_id"
-            >
+            <label className={labelClass} htmlFor="microchip_id">
               Microchip ID
             </label>
             <input
@@ -183,28 +182,28 @@ export default function AddDogForm({ onClose }: AddDogFormProps) {
               name="microchip_id"
               autoComplete="off"
               disabled={pending}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-neutral-950/50 px-3 py-2 text-neutral-50 placeholder:text-neutral-600 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+              className={`mt-2 ${inputClass}`}
             />
             {fieldErrors.microchip_id ? (
-              <p className="mt-1 text-xs text-red-400">
+              <p className="mt-1 text-xs text-red-500">
                 {fieldErrors.microchip_id}
               </p>
             ) : null}
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-col gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={pending}
-              className="rounded-lg px-4 py-2 text-sm text-neutral-300 hover:bg-white/5 disabled:opacity-50"
+              className={secondaryBtn}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-950 disabled:opacity-50"
+              className={`${primaryBtn} mt-4`}
             >
               {pending ? 'Saving…' : 'Save dog'}
             </button>

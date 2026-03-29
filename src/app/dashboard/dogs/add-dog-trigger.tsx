@@ -3,6 +3,16 @@
 import { useState } from 'react'
 import AddDogForm from './AddDogForm'
 
+const addDogBtnStyle = {
+  backgroundColor: '#2d7a4f',
+  color: '#ffffff',
+  padding: '8px 18px',
+  borderRadius: '10px',
+  border: 'none',
+  cursor: 'pointer',
+  fontWeight: '500',
+} as const
+
 export default function AddDogTrigger() {
   const [open, setOpen] = useState(false)
 
@@ -11,7 +21,7 @@ export default function AddDogTrigger() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-200"
+        style={addDogBtnStyle}
       >
         Add dog
       </button>
