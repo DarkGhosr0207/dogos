@@ -4,6 +4,7 @@ import ActivityClient, {
   type ActivityDogOption,
   type ActivityLogRow,
 } from './ActivityClient'
+import { computeWeeklyStats } from './weekly-stats'
 
 export default async function ActivityPage() {
   const supabase = await createClient()
@@ -15,9 +16,9 @@ export default async function ActivityPage() {
     redirect('/')
   }
 
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-  thirtyDaysAgo.setHours(0, 0, 0, 0)
+  const thirtyFiveDaysAgo = new Date()
+  thirtyFiveDaysAgo.setDate(thirtyFiveDaysAgo.getDate() - 35)
+  thirtyFiveDaysAgo.setHours(0, 0, 0, 0)
 
   const { data: dogsData, error: dogsError } = await supabase
     .from('dogs')
@@ -34,13 +35,15 @@ export default async function ActivityPage() {
       'id, dog_id, activity_type, duration_minutes, distance_km, intensity, notes, logged_at'
     )
     .eq('user_id', user.id)
-    .gte('logged_at', thirtyDaysAgo.toISOString())
+    .gte('logged_at', thirtyFiveDaysAgo.toISOString())
     .order('logged_at', { ascending: false })
 
   const activities: ActivityLogRow[] = (logsData ?? []).map((row) => ({
     ...(row as Omit<ActivityLogRow, 'dog_name'>),
     dog_name: dogNameById.get(row.dog_id) ?? 'Dog',
   }))
+
+  const weeklyStats = computeWeeklyStats(activities, new Date())
 
   return (
     <>
@@ -55,7 +58,7 @@ export default async function ActivityPage() {
         </div>
       ) : null}
       <div className="dashboard-content" style={{ color: '#111827' }}>
-        <ActivityClient dogs={dogs} activities={activities} />
+        <ActivityClient dogs={dogs} activities={activities} weeklyStats={weeklyStats} />
       </div>
     </>
   )
