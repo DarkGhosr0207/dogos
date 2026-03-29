@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { deleteDog } from './actions'
+import { deleteDog, uploadDogPhoto } from './actions'
 import type { CSSProperties } from 'react'
 
 export type DogCardDog = {
@@ -10,6 +10,7 @@ export type DogCardDog = {
   name: string
   breed: string | null
   date_of_birth: string | null
+  photo_url?: string | null
 }
 
 type DogCardProps = {
@@ -55,8 +56,25 @@ const pillStyle: CSSProperties = {
 export default function DogCard({ dog, ageLabel }: DogCardProps) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement | null>(null)
 
   const initial = dog.name.trim().charAt(0).toUpperCase() || '?'
+
+  async function onUpload(file: File) {
+    setUploading(true)
+    try {
+      const res = await uploadDogPhoto(dog.id, file)
+      if (!res.success) {
+        alert(res.error)
+        return
+      }
+      router.refresh()
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
 
   async function onDelete() {
     if (!confirm(`Remove ${dog.name} from your list?`)) return
@@ -76,8 +94,48 @@ export default function DogCard({ dog, ageLabel }: DogCardProps) {
   return (
     <li style={cardStyle}>
       <div className="flex items-start">
-        <div style={avatarStyle} aria-hidden>
-          {initial}
+        <div className="relative">
+          {dog.photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={dog.photo_url}
+              alt={`${dog.name} photo`}
+              className="h-12 w-12 rounded-full object-cover"
+            />
+          ) : (
+            <div style={avatarStyle} aria-hidden>
+              {initial}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full disabled:opacity-50"
+            style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #e5e7eb',
+              color: '#2d7a4f',
+              cursor: 'pointer',
+            }}
+            aria-label={`Upload photo for ${dog.name}`}
+            title="Upload photo"
+          >
+            {uploading ? '…' : '📷'}
+          </button>
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0]
+              if (!f) return
+              void onUpload(f)
+            }}
+          />
         </div>
         <div className="ml-3 min-w-0 flex-1">
           <h2 style={nameStyle}>{dog.name}</h2>
@@ -91,7 +149,7 @@ export default function DogCard({ dog, ageLabel }: DogCardProps) {
         <button
           type="button"
           onClick={() => void onDelete()}
-          disabled={pending}
+          disabled={pending || uploading}
           className="ml-auto shrink-0 text-sm transition-colors disabled:opacity-50"
           style={{ color: '#f87171' }}
           aria-label={`Delete ${dog.name}`}

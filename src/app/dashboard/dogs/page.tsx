@@ -9,6 +9,7 @@ export type DogRow = {
   name: string
   breed: string | null
   date_of_birth: string | null
+  photo_url: string | null
 }
 
 export default async function DogsPage() {
@@ -23,7 +24,7 @@ export default async function DogsPage() {
 
   const { data: dogs, error } = await supabase
     .from('dogs')
-    .select('id, name, breed, date_of_birth')
+    .select('id, name, breed, date_of_birth, photo_url')
     .eq('owner_id', user.id)
     .order('name', { ascending: true })
 

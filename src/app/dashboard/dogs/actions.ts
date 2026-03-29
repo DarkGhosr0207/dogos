@@ -1,5 +1,11 @@
 'use server'
 
+/*
+SQL (Supabase Storage bucket, public):
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('dog-photos', 'dog-photos', true);
+*/
+
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
@@ -111,4 +117,82 @@ export async function deleteDog(id: string): Promise<DeleteDogResult> {
 
   revalidatePath('/dashboard/dogs')
   return { ok: true }
+}
+
+export type UploadDogPhotoResult =
+  | { success: true; url: string }
+  | { success: false; error: string }
+
+export async function uploadDogPhoto(
+  dogId: string,
+  file: File
+): Promise<UploadDogPhotoResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'You must be signed in.' }
+  }
+
+  const id = dogId.trim()
+  if (!id) {
+    return { success: false, error: 'Missing dog id.' }
+  }
+
+  if (!file) {
+    return { success: false, error: 'Missing file.' }
+  }
+
+  if (!file.type.startsWith('image/')) {
+    return { success: false, error: 'File must be an image.' }
+  }
+
+  // Ensure the dog belongs to the user before allowing upload.
+  const { data: dog, error: dogErr } = await supabase
+    .from('dogs')
+    .select('id')
+    .eq('id', id)
+    .eq('owner_id', user.id)
+    .maybeSingle()
+
+  if (dogErr) {
+    return { success: false, error: dogErr.message }
+  }
+  if (!dog) {
+    return { success: false, error: 'Dog not found or not yours.' }
+  }
+
+  const path = `${user.id}/${id}.jpg`
+
+  const { error: uploadErr } = await supabase.storage
+    .from('dog-photos')
+    .upload(path, file, {
+      upsert: true,
+      contentType: file.type || 'image/jpeg',
+    })
+
+  if (uploadErr) {
+    return { success: false, error: uploadErr.message }
+  }
+
+  const { data: publicUrl } = supabase.storage
+    .from('dog-photos')
+    .getPublicUrl(path)
+
+  const url = publicUrl.publicUrl
+
+  const { error: updateErr } = await supabase
+    .from('dogs')
+    .update({ photo_url: url })
+    .eq('id', id)
+    .eq('owner_id', user.id)
+
+  if (updateErr) {
+    return { success: false, error: updateErr.message }
+  }
+
+  revalidatePath('/dashboard/dogs')
+  return { success: true, url }
 }
