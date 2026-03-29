@@ -1,8 +1,28 @@
-export default function LegalHubPage() {
+import { createClient } from '@/lib/supabase/server'
+import LegalHubClient, { type LegalArticle } from './LegalHubClient'
+
+export default async function LegalHubPage() {
+  const supabase = await createClient()
+
+  const { data: articlesData, error } = await supabase
+    .from('legal_articles')
+    .select(
+      'id, country, category, title, content, law_reference, is_published, created_at'
+    )
+    .eq('is_published', true)
+    .order('country', { ascending: true })
+    .order('category', { ascending: true })
+
+  const articles: LegalArticle[] = (articlesData ?? []) as LegalArticle[]
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold">Legal Hub</h1>
-      <p className="mt-2 text-sm text-neutral-400">Coming soon.</p>
-    </div>
+    <>
+      {error ? (
+        <div className="border-b border-red-500/20 bg-red-950/30 px-6 py-3 text-sm text-red-300">
+          Could not load articles: {error.message}
+        </div>
+      ) : null}
+      <LegalHubClient articles={articles} />
+    </>
   )
 }
