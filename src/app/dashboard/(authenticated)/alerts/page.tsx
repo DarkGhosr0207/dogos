@@ -45,13 +45,34 @@ export default async function AlertsPage() {
 
   const alerts: HealthAlertRow[] = (data ?? []) as HealthAlertRow[]
 
+  const { data: remindersData } = await supabase
+    .from('reminders')
+    .select('id, dog_id, type, title, due_at')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .order('due_at', { ascending: true })
+    .limit(8)
+
+  const dogIds = Array.from(new Set((remindersData ?? []).map((r) => String(r.dog_id))))
+  const { data: dogsData } = dogIds.length
+    ? await supabase.from('dogs').select('id, name').in('id', dogIds)
+    : { data: [] as Array<{ id: string; name: string }> }
+  const dogNameById = new Map((dogsData ?? []).map((d) => [String(d.id), String(d.name)]))
+  const reminders = (remindersData ?? []).map((r) => ({
+    id: String(r.id),
+    type: String(r.type),
+    title: String(r.title),
+    due_at: String(r.due_at),
+    dog_name: dogNameById.get(String(r.dog_id)) ?? 'Dog',
+  }))
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
       <h1 className="text-2xl font-bold" style={{ color: '#111827' }}>
-        🔔 Health Alerts
+        🔔 Alerts & reminders
       </h1>
       <p className="mt-1 text-sm" style={{ color: '#6b7280' }}>
-        Proactive health notifications for your dogs
+        Proactive health notifications and upcoming care reminders
       </p>
 
       {error ? (
@@ -115,6 +136,40 @@ export default async function AlertsPage() {
             </div>
           )
         })}
+      </div>
+
+      <div className="mt-10">
+        <h2 className="text-lg font-semibold" style={{ color: '#111827' }}>
+          🔔 Upcoming reminders
+        </h2>
+        {reminders.length === 0 ? (
+          <p className="mt-2 text-sm" style={{ color: '#6b7280' }}>
+            No active reminders.
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {reminders.map((r) => (
+              <div
+                key={r.id}
+                className="rounded-2xl border border-gray-200 bg-white p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold" style={{ color: '#111827' }}>
+                      {r.title}
+                    </p>
+                    <p className="mt-0.5 text-xs" style={{ color: '#6b7280' }}>
+                      {r.dog_name} · {r.type}
+                    </p>
+                  </div>
+                  <span className="text-xs" style={{ color: '#6b7280' }}>
+                    {new Date(r.due_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
