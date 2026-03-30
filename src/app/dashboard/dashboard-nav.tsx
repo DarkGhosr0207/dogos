@@ -13,6 +13,7 @@ const items = [
   { href: '/dashboard/weight', label: 'Weight', icon: '⚖️' },
   { href: '/dashboard/insights', label: 'AI Insights', icon: '👑' },
   { href: '/dashboard/travel', label: 'Travel', icon: '✈️' },
+  { href: '/dashboard/report', label: 'Report', icon: '📋' },
   { href: '/dashboard/symptoms', label: 'Symptoms', icon: '🩺' },
   { href: '/dashboard/legal', label: 'Legal Hub', icon: '⚖️' },
   { href: '/dashboard/vet', label: 'Find Vet', icon: '🏥' },
