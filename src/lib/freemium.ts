@@ -28,6 +28,11 @@ export async function checkInsightsAccess(userId: string): Promise<boolean> {
   return plan === 'premium_plus'
 }
 
+export async function checkTravelPlannerAccess(userId: string): Promise<boolean> {
+  const plan = await getUserPlan(userId)
+  return plan === 'premium_plus'
+}
+
 export async function checkSymptomLimit(userId: string): Promise<{
   allowed: boolean
   used: number
