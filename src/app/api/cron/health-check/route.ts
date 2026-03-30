@@ -4,7 +4,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { checkDogAlerts, type Alert } from '@/lib/health-check'
 import { buildAlertEmail } from '@/lib/email-templates'
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   const secret = process.env.CRON_SECRET
   const auth = request.headers.get('authorization')
   if (!secret || auth !== `Bearer ${secret}`) {
@@ -73,14 +73,16 @@ export async function GET(request: Request) {
         user_id: userId,
         dog_id: dogId,
         dog_name: dogName,
-        type: a.type,
+        alert_type: a.type,
         severity: a.severity,
         message: a.message,
         is_read: false,
       }))
 
-      const insertRes = await service.from('health_alerts').insert(insertRows).select('id')
-      if (!insertRes.error) {
+      console.log('Inserting alerts:', JSON.stringify(alerts))
+      const { error: insertError } = await service.from('health_alerts').insert(insertRows)
+      if (insertError) console.error('Insert error:', insertError.message)
+      if (!insertError) {
         totalAlertsInserted += insertRows.length
       }
 

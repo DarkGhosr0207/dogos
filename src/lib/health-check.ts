@@ -31,49 +31,57 @@ export async function checkDogAlerts(
 
   const now = new Date()
 
+  console.log('Checking alerts for dog:', dogId)
+
   // Trigger 1 - Not eating: last 3 days, appetite = not_eating, 2+ days
   {
-    const d3 = new Date(now)
-    d3.setUTCDate(d3.getUTCDate() - 2)
-    const startStr = startOfDayStrUTC(d3)
-    const { data, error } = await supabase
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+    const threeDaysAgoStr = threeDaysAgo.toISOString().split('T')[0]
+
+    const { data: notEatingLogs, error } = await supabase
       .from('health_logs')
       .select('log_date')
       .eq('user_id', userId)
       .eq('dog_id', dogId)
-      .gte('log_date', startStr)
+      .gte('log_date', threeDaysAgoStr)
       .eq('appetite', 'not_eating')
 
     if (error) throw new Error(`health_logs appetite query failed: ${error.message}`)
-    if ((data?.length ?? 0) >= 2) {
+    console.log('Not eating logs found:', notEatingLogs?.length)
+    if ((notEatingLogs?.length ?? 0) >= 2) {
       alerts.push({
         type: 'not_eating',
         severity: 'high',
         message: `${dogName} has not been eating for 2+ days. This may indicate illness — consider contacting your vet.`,
       })
+      console.log('Total alerts to insert:', alerts.length)
     }
   }
 
   // Trigger 2 - Very low energy: last 4 days, energy = very_low, 3+ days
   {
-    const d4 = new Date(now)
-    d4.setUTCDate(d4.getUTCDate() - 3)
-    const startStr = startOfDayStrUTC(d4)
-    const { data, error } = await supabase
+    const fourDaysAgo = new Date()
+    fourDaysAgo.setDate(fourDaysAgo.getDate() - 4)
+    const fourDaysAgoStr = fourDaysAgo.toISOString().split('T')[0]
+
+    const { data: lowEnergyLogs, error } = await supabase
       .from('health_logs')
       .select('log_date')
       .eq('user_id', userId)
       .eq('dog_id', dogId)
-      .gte('log_date', startStr)
+      .gte('log_date', fourDaysAgoStr)
       .eq('energy', 'very_low')
 
     if (error) throw new Error(`health_logs energy query failed: ${error.message}`)
-    if ((data?.length ?? 0) >= 3) {
+    console.log('Low energy logs found:', lowEnergyLogs?.length)
+    if ((lowEnergyLogs?.length ?? 0) >= 3) {
       alerts.push({
         type: 'low_energy',
         severity: 'high',
         message: `${dogName} has had very low energy for 3+ days. Persistent lethargy can be a sign of illness.`,
       })
+      console.log('Total alerts to insert:', alerts.length)
     }
   }
 
@@ -98,6 +106,7 @@ export async function checkDogAlerts(
           severity: 'high',
           message: `${dogName}'s weight dropped by more than 10% since last measurement. Significant weight loss may require veterinary attention.`,
         })
+        console.log('Total alerts to insert:', alerts.length)
       }
     }
   }
@@ -138,6 +147,7 @@ export async function checkDogAlerts(
         severity: 'medium',
         message: `${dogName}'s activity level dropped by 50%+ compared to last week. This could indicate discomfort or illness.`,
       })
+      console.log('Total alerts to insert:', alerts.length)
     }
   }
 
@@ -170,21 +180,23 @@ export async function checkDogAlerts(
           severity: 'medium',
           message: `${dogName} has been gaining weight consistently. Consider reviewing diet and increasing activity to prevent obesity.`,
         })
+        console.log('Total alerts to insert:', alerts.length)
       }
     }
   }
 
   // Trigger 6 - Health log streak broken: last 5 days, if no log for last 3+ days
   {
-    const d5 = new Date(now)
-    d5.setUTCDate(d5.getUTCDate() - 4)
-    const startStr = startOfDayStrUTC(d5)
+    const fiveDaysAgo = new Date()
+    fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5)
+    const fiveDaysAgoStr = fiveDaysAgo.toISOString().split('T')[0]
+
     const { data, error } = await supabase
       .from('health_logs')
       .select('log_date')
       .eq('user_id', userId)
       .eq('dog_id', dogId)
-      .gte('log_date', startStr)
+      .gte('log_date', fiveDaysAgoStr)
       .order('log_date', { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -192,9 +204,9 @@ export async function checkDogAlerts(
     if (error) throw new Error(`health_logs streak query failed: ${error.message}`)
     const latestDate = (data as { log_date?: string } | null)?.log_date ?? null
 
-    const d3 = new Date(now)
-    d3.setUTCDate(d3.getUTCDate() - 2)
-    const cutoffStr = startOfDayStrUTC(d3)
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+    const cutoffStr = threeDaysAgo.toISOString().split('T')[0]
 
     if (!latestDate || latestDate < cutoffStr) {
       alerts.push({
@@ -202,6 +214,7 @@ export async function checkDogAlerts(
         severity: 'low',
         message: `You haven't logged ${dogName}'s health in 3+ days. Regular check-ins help catch health issues early.`,
       })
+      console.log('Total alerts to insert:', alerts.length)
     }
   }
 
