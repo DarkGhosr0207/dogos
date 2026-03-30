@@ -4,20 +4,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
-const items = [
-  { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/dashboard/dogs', label: 'My Dogs', icon: '🐾' },
-  { href: '/dashboard/reminders', label: 'Reminders', icon: '🔔' },
-  { href: '/dashboard/activity', label: 'Activity', icon: '🏃' },
-  { href: '/dashboard/health', label: 'Health Log', icon: '❤️' },
-  { href: '/dashboard/weight', label: 'Weight', icon: '⚖️' },
-  { href: '/dashboard/insights', label: 'AI Insights', icon: '👑' },
-  { href: '/dashboard/travel', label: 'Travel', icon: '✈️' },
-  { href: '/dashboard/report', label: 'Report', icon: '📋' },
-  { href: '/dashboard/symptoms', label: 'Symptoms', icon: '🩺' },
-  { href: '/dashboard/legal', label: 'Legal Hub', icon: '⚖️' },
-  { href: '/dashboard/vet', label: 'Find Vet', icon: '🏥' },
-] as const
+export type DashboardNavItem = {
+  href: string
+  label: string
+  icon: string
+}
 
 const forestHover = {
   backgroundColor: '#2d4a34',
@@ -31,7 +22,12 @@ const defaultNav = {
 const itemBase =
   'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors'
 
-export default function DashboardNav() {
+type DashboardNavProps = {
+  items: DashboardNavItem[]
+  unreadAlertsCount: number
+}
+
+export default function DashboardNav({ items, unreadAlertsCount }: DashboardNavProps) {
   const pathname = usePathname()
   const [hoveredHref, setHoveredHref] = useState<string | null>(null)
 
@@ -61,7 +57,17 @@ export default function DashboardNav() {
             <span className="text-lg leading-none" aria-hidden>
               {icon}
             </span>
-            {label}
+            <span className="flex min-w-0 items-center gap-2">
+              <span className="truncate">{label}</span>
+              {href === '/dashboard/alerts' && unreadAlertsCount > 0 ? (
+                <span
+                  aria-label={`${unreadAlertsCount} unread alerts`}
+                  title={`${unreadAlertsCount} unread alerts`}
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: '#ef4444' }}
+                />
+              ) : null}
+            </span>
           </Link>
         )
       })}

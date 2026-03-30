@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import DashboardNav from '../dashboard-nav'
+import DashboardNavServer from '../DashboardNavServer'
 import SignOutButton from '../sign-out-button'
 
 export default async function AuthenticatedDashboardLayout({
@@ -53,7 +53,7 @@ export default async function AuthenticatedDashboardLayout({
           </div>
         </div>
         <div className="px-3 py-1">
-          <DashboardNav />
+          <DashboardNavServer />
         </div>
         <div
           className="mt-auto p-4"
