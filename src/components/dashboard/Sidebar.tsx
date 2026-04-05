@@ -330,6 +330,27 @@ export default function Sidebar({
               {!collapsed ? <span>Collapse</span> : null}
             </button>
           ) : null}
+
+          {!collapsed || inDrawer ? (
+            <div className="mt-3 text-center">
+              <Link
+                href="/privacy"
+                style={{
+                  fontSize: 11,
+                  color: 'rgba(255,255,255,0.35)',
+                  textDecoration: 'none',
+                }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.7)'
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.35)'
+                }}
+              >
+                Privacy Policy
+              </Link>
+            </div>
+          ) : null}
         </div>
       </aside>
     )
