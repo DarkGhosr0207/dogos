@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getUserFromRequest } from '@/lib/supabase/get-user-from-request'
 import { checkInsightsAccess } from '@/lib/freemium'
 
 const MODEL = 'claude-sonnet-4-20250514'
@@ -103,16 +103,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const { user, supabase } = await getUserFromRequest(request)
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const allowed = await checkInsightsAccess(user.id)
+  const allowed = await checkInsightsAccess(user.id, supabase)
   if (!allowed) {
     return NextResponse.json(
       { error: 'PREMIUM_PLUS_REQUIRED', message: 'AI Health Insights requires Premium+.' },

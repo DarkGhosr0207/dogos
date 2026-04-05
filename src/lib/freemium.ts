@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 
 export type UserPlan = 'free' | 'premium' | 'premium_plus'
@@ -8,8 +9,11 @@ function startOfCurrentMonthIso(now = new Date()): string {
   return start.toISOString()
 }
 
-export async function getUserPlan(userId: string): Promise<UserPlan> {
-  const supabase = await createClient()
+export async function getUserPlan(
+  userId: string,
+  supabaseClient?: SupabaseClient,
+): Promise<UserPlan> {
+  const supabase = supabaseClient ?? (await createClient())
   const { data, error } = await supabase
     .from('users_profile')
     .select('plan')
@@ -23,32 +27,44 @@ export async function getUserPlan(userId: string): Promise<UserPlan> {
   return 'free'
 }
 
-export async function checkInsightsAccess(userId: string): Promise<boolean> {
-  const plan = await getUserPlan(userId)
+export async function checkInsightsAccess(
+  userId: string,
+  supabaseClient?: SupabaseClient,
+): Promise<boolean> {
+  const plan = await getUserPlan(userId, supabaseClient)
   return plan === 'premium_plus'
 }
 
-export async function checkTravelPlannerAccess(userId: string): Promise<boolean> {
-  const plan = await getUserPlan(userId)
+export async function checkTravelPlannerAccess(
+  userId: string,
+  supabaseClient?: SupabaseClient,
+): Promise<boolean> {
+  const plan = await getUserPlan(userId, supabaseClient)
   return plan === 'premium_plus'
 }
 
-export async function checkMonthlyReportAccess(userId: string): Promise<boolean> {
-  const plan = await getUserPlan(userId)
+export async function checkMonthlyReportAccess(
+  userId: string,
+  supabaseClient?: SupabaseClient,
+): Promise<boolean> {
+  const plan = await getUserPlan(userId, supabaseClient)
   return plan === 'premium_plus'
 }
 
-export async function checkSymptomLimit(userId: string): Promise<{
+export async function checkSymptomLimit(
+  userId: string,
+  supabaseClient?: SupabaseClient,
+): Promise<{
   allowed: boolean
   used: number
   limit: number
 }> {
-  const plan = await getUserPlan(userId)
+  const plan = await getUserPlan(userId, supabaseClient)
   if (plan === 'premium' || plan === 'premium_plus') {
     return { allowed: true, used: 0, limit: 999 }
   }
 
-  const supabase = await createClient()
+  const supabase = supabaseClient ?? (await createClient())
   const startIso = startOfCurrentMonthIso()
 
   const { count } = await supabase

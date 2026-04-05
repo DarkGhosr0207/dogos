@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getUserFromRequest } from '@/lib/supabase/get-user-from-request'
 import { ageLabelFromDateOfBirth } from '@/app/dashboard/dogs/dog-age'
 import { checkSymptomLimit } from '@/lib/freemium'
 
@@ -86,16 +86,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const { user, supabase } = await getUserFromRequest(request)
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const limit = await checkSymptomLimit(user.id)
+  const limit = await checkSymptomLimit(user.id, supabase)
   if (!limit.allowed) {
     return NextResponse.json(
       {
