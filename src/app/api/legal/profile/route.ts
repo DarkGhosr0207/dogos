@@ -69,21 +69,24 @@ export async function POST(request: Request) {
     }
   }
 
-  // Fetch owner's country of residence (user-level setting, not dog-level)
+  // Fetch owner's country + city of residence (user-level setting, not dog-level)
   const { data: profile } = await supabase
     .from('users_profile')
-    .select('country')
+    .select('country, city')
     .eq('id', user.id)
     .maybeSingle()
 
-  const country = (profile as { country?: string | null } | null)?.country ?? 'Germany'
+  const profileRow = profile as { country?: string | null; city?: string | null } | null
+  const country = profileRow?.country ?? 'Germany'
+  const location = profileRow?.city ? `${profileRow.city}, ${country}` : country
+
   const name = String(dogRow.name ?? 'Dog')
   const breed = typeof dogRow.breed === 'string' ? dogRow.breed : 'mixed breed'
   const weight = typeof dogRow.weight_kg === 'number' ? dogRow.weight_kg : null
 
-  const prompt = `You are a dog law expert. Generate 5 personalized legal cards for a dog living in ${country}. Dog: ${name}, breed: ${breed}, weight: ${weight != null ? `${weight}kg` : 'unknown'}. Return ONLY a JSON array, no markdown, no preamble:
-[{ "title": "<max 10 words, specific to this dog>", "description": "<2-3 sentences practical>", "category": "<registration|public_space|breed_restriction|liability|welfare>", "severity": "<info|warning|critical>", "country": "${country}" }]
-If breed has restrictions in ${country}, mark as critical. Be specific, not generic.`
+  const prompt = `You are a dog law expert. Generate 5 personalized legal cards for a dog living in ${location}. Dog: ${name}, breed: ${breed}, weight: ${weight != null ? `${weight}kg` : 'unknown'}. Return ONLY a JSON array, no markdown, no preamble:
+[{ "title": "<max 10 words, specific to this dog>", "description": "<2-3 sentences practical>", "category": "<registration|public_space|breed_restriction|liability|welfare>", "severity": "<info|warning|critical>", "country": "${location}" }]
+If breed has restrictions in ${location}, mark as critical. Be specific to the region, not generic.`
 
   let anthropicRes: Response
   try {
