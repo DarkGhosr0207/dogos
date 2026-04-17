@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // Fetch user country
+  // Fetch owner's country of residence (user-level setting, not dog-level)
   const { data: profile } = await supabase
     .from('users_profile')
     .select('country')
