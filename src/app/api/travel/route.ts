@@ -26,16 +26,26 @@ export type TravelTimelineItem = {
   critical: boolean
 }
 
+export type LegalItem = {
+  title: string
+  description: string
+  category: 'entry' | 'breed' | 'transport' | 'health'
+  important: boolean
+}
+
 export type TravelPlannerResult = {
   summary: string
   health_status_for_travel: string
   urgency_warning: string | null
   required_documents: TravelDocumentItem[]
   vaccinations: TravelVaccinationItem[]
+  vaccines: string[]
   timeline: TravelTimelineItem[]
   breed_specific: string | null
   estimated_cost: string
   official_resources: string[]
+  legal_items: LegalItem[]
+  vaccines_needed: Array<{ vaccine: string; required: boolean; notes: string }>
 }
 
 function extractJsonObject(text: string): string {
@@ -152,16 +162,45 @@ function parseTravelPayload(text: string): TravelPlannerResult {
     throw new Error('Invalid official_resources entries in model response')
   }
 
+  // Parse legal_items leniently
+  const rawLegal = data.legal_items
+  const legal_items: LegalItem[] = Array.isArray(rawLegal)
+    ? (rawLegal as Record<string, unknown>[])
+        .filter((it) => it && typeof it.title === 'string')
+        .map((it) => ({
+          title: String(it.title),
+          description: typeof it.description === 'string' ? it.description : '',
+          category: (['entry', 'breed', 'transport', 'health'] as const).includes(
+            it.category as 'entry' | 'breed' | 'transport' | 'health',
+          )
+            ? (it.category as LegalItem['category'])
+            : 'entry',
+          important: it.important === true,
+        }))
+    : []
+
+  const vaccinations = data.vaccinations as TravelVaccinationItem[]
+  const vaccines_needed = vaccinations.map((v) => ({
+    vaccine: v.vaccine,
+    required: v.required,
+    notes: v.notes,
+  }))
+
+  const vaccines = vaccinations.map((v) => `${v.vaccine} — ${v.notes}`)
+
   return {
     summary: data.summary,
     health_status_for_travel: data.health_status_for_travel as string,
     urgency_warning: urgency as string | null,
     required_documents: data.required_documents as TravelDocumentItem[],
-    vaccinations: data.vaccinations as TravelVaccinationItem[],
+    vaccinations,
+    vaccines,
     timeline: data.timeline as TravelTimelineItem[],
     breed_specific: breed as string | null,
     estimated_cost: data.estimated_cost,
     official_resources: data.official_resources as string[],
+    legal_items,
+    vaccines_needed,
   }
 }
 
@@ -398,8 +437,17 @@ Create response in this EXACT JSON format:
   ],
   "breed_specific": "<any breed-specific restrictions or requirements, or null>",
   "estimated_cost": "<rough cost estimate in EUR>",
-  "official_resources": ["<official website or authority to verify>"]
+  "official_resources": ["<official website or authority to verify>"],
+  "legal_items": [
+    {
+      "title": "<max 8 words>",
+      "description": "<1-2 sentences, practical>",
+      "category": "<entry|breed|transport|health>",
+      "important": true
+    }
+  ]
 }
+Include 4-5 legal_items covering: entry requirements (microchip, passport, vaccines), breed-specific restrictions, transport rules, destination country warnings. Set important=true if non-compliance could prevent entry.
 Respond ONLY with valid JSON, no markdown.`
 
   let anthropicRes: Response
