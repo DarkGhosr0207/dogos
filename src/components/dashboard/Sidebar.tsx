@@ -77,6 +77,8 @@ export default function Sidebar({
         items: [
           { label: 'Profile & QR', href: '/dashboard/dogs', icon: '🐾' },
           { label: 'Weight', href: '/dashboard/weight', icon: '⚖️' },
+          { label: 'Vet visits', href: '/dashboard/vet-visits', icon: '📅' },
+          { label: 'Documents', href: '/dashboard/documents', icon: '📄' },
         ],
       },
       {
@@ -85,6 +87,7 @@ export default function Sidebar({
           { label: 'Daily log', href: '/dashboard/health-log', icon: '📝', badge: 'healthLogDue' },
           { label: 'Activity', href: '/dashboard/activity', icon: '🏃' },
           { label: 'Symptom check', href: '/dashboard/symptoms', icon: '🩺' },
+          { label: 'Medications', href: '/dashboard/medications', icon: '💊' },
         ],
       },
       {
