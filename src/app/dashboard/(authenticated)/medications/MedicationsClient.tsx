@@ -102,26 +102,19 @@ export default function MedicationsClient({
     setError(null)
     try {
       const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      const payload: Record<string, any> = {
-        dog_id: form.dog_id,
-        user_id: user.id,
-        name: form.name.trim(),
-        dosage: form.dosage.trim() || null,
-        frequency: form.frequency.trim() || null,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-        notes: form.notes.trim() || null,
-        is_active: true,
-      }
 
       const { data, error: insertError } = await supabase
         .from('medications')
-        .insert(payload)
+        .insert({
+          dog_id: form.dog_id,
+          name: form.name.trim(),
+          dosage: form.dosage.trim() || null,
+          frequency: form.frequency.trim() || null,
+          start_date: form.start_date || null,
+          end_date: form.end_date || null,
+          notes: form.notes.trim() || null,
+          is_active: true,
+        })
         .select('id, dog_id, name, dosage, frequency, start_date, end_date, notes, is_active')
         .single()
 
