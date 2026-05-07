@@ -4,7 +4,13 @@ import { useState } from 'react'
 
 const accent = '#2d7a4f'
 
-export default function FoundForm({ dogId }: { dogId: string }) {
+export default function FoundForm({
+  dogId,
+  triggerVariant = 'button',
+}: {
+  dogId: string
+  triggerVariant?: 'button' | 'link'
+}) {
   const [open, setOpen] = useState(false)
   const [phone, setPhone] = useState('')
   const [message, setMessage] = useState('')
@@ -45,6 +51,13 @@ export default function FoundForm({ dogId }: { dogId: string }) {
   }
 
   if (!open) {
+    if (triggerVariant === 'link') {
+      return (
+        <button style={styles.linkTrigger} onClick={() => setOpen(true)}>
+          I found this dog →
+        </button>
+      )
+    }
     return (
       <button style={styles.mainBtn} onClick={() => setOpen(true)}>
         I found this dog!
@@ -194,5 +207,16 @@ const styles = {
     fontSize: '14px',
     color: '#6b7280',
     margin: 0,
+  },
+  linkTrigger: {
+    background: 'none',
+    border: 'none',
+    padding: '8px 0 0',
+    fontSize: '14px',
+    fontWeight: '600' as const,
+    color: '#6b7280',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    textUnderlineOffset: '3px',
   },
 }

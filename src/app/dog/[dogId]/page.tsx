@@ -113,6 +113,7 @@ export default async function PublicDogPage({
         /* ── LOST MODE ── */
         <div style={styles.lostSection}>
           <p style={styles.lostTitle}>This dog is lost. Please help!</p>
+
           {(dog.owner_contact_name || dog.owner_contact_phone) && (
             <div style={styles.contactBox}>
               {dog.owner_contact_name && (
@@ -131,20 +132,24 @@ export default async function PublicDogPage({
               )}
             </div>
           )}
+
           {dog.owner_contact_phone && (
             <div style={styles.callRow}>
               <a href={`tel:${dog.owner_contact_phone}`} style={styles.callBtn}>
-                Call owner
+                📞 Call owner
               </a>
               <a
-                href={`sms:${dog.owner_contact_phone}`}
-                style={{ ...styles.callBtn, backgroundColor: '#f3f4f6', color: '#111827' }}
+                href={`https://wa.me/${dog.owner_contact_phone.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ ...styles.callBtn, backgroundColor: '#25d366' }}
               >
-                Send SMS
+                💬 WhatsApp
               </a>
             </div>
           )}
-          <FoundForm dogId={dog.id} />
+
+          <FoundForm dogId={dog.id} triggerVariant="link" />
         </div>
       ) : (
         /* ── PASSIVE MODE ── */
@@ -274,7 +279,7 @@ const styles: Record<string, React.CSSProperties> = {
   callRow: {
     display: 'flex',
     gap: '10px',
-    marginBottom: '8px',
+    marginBottom: '16px',
   },
   callBtn: {
     flex: 1,
