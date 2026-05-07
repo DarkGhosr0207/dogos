@@ -155,8 +155,8 @@ export default function TermsPage() {
             You must create an account to use DogOS. You are responsible for maintaining the
             confidentiality of your login credentials and for all activity that occurs under your
             account. Notify us immediately at{' '}
-            <a href="mailto:support@dogos.com" style={{ color: accent, fontWeight: 600 }}>
-              support@dogos.com
+            <a href="mailto:dogos.hq@gmail.com" style={{ color: accent, fontWeight: 600 }}>
+              dogos.hq@gmail.com
             </a>{' '}
             if you suspect unauthorised access to your account.
           </p>
@@ -338,8 +338,8 @@ export default function TermsPage() {
           >
             <p style={{ margin: 0, fontWeight: 600, color: '#111827' }}>DogOS</p>
             <p style={{ margin: '0.25rem 0 0' }}>
-              <a href="mailto:support@dogos.com" style={{ color: accent, fontWeight: 600 }}>
-                support@dogos.com
+              <a href="mailto:dogos.hq@gmail.com" style={{ color: accent, fontWeight: 600 }}>
+                dogos.hq@gmail.com
               </a>
             </p>
           </div>
