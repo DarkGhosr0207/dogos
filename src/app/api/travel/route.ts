@@ -46,6 +46,7 @@ export type TravelPlannerResult = {
   official_resources: string[]
   legal_items: LegalItem[]
   vaccines_needed: Array<{ vaccine: string; required: boolean; notes: string }>
+  last_verified: string
 }
 
 function extractJsonObject(text: string): string {
@@ -61,7 +62,8 @@ function extractJsonObject(text: string): string {
   return t.slice(start, end + 1)
 }
 
-function anthropicMessageText(data: unknown): string {
+/** Extract all text blocks from a Claude response — handles tool_use + tool_result turns. */
+function extractTextFromContent(data: unknown): string {
   if (!data || typeof data !== 'object') {
     throw new Error('Unexpected Anthropic response')
   }
@@ -69,14 +71,23 @@ function anthropicMessageText(data: unknown): string {
   if (!Array.isArray(content) || content.length === 0) {
     throw new Error('Anthropic response had no content')
   }
-  const first = content[0] as { type?: string; text?: string }
-  if (first?.type !== 'text' || typeof first.text !== 'string') {
-    throw new Error('Anthropic response format not supported')
+  const text = content
+    .filter(
+      (item): item is { type: string; text: string } =>
+        item !== null &&
+        typeof item === 'object' &&
+        (item as Record<string, unknown>).type === 'text' &&
+        typeof (item as Record<string, unknown>).text === 'string',
+    )
+    .map((item) => item.text)
+    .join('\n')
+  if (!text) {
+    throw new Error('No text content in Anthropic response')
   }
-  return first.text
+  return text
 }
 
-function parseTravelPayload(text: string): TravelPlannerResult {
+function parseTravelPayload(text: string, fallbackVerified: string): TravelPlannerResult {
   const raw = extractJsonObject(text)
   const data = JSON.parse(raw) as Record<string, unknown>
 
@@ -188,6 +199,11 @@ function parseTravelPayload(text: string): TravelPlannerResult {
 
   const vaccines = vaccinations.map((v) => `${v.vaccine} — ${v.notes}`)
 
+  const last_verified =
+    typeof data.last_verified === 'string' && data.last_verified.trim()
+      ? data.last_verified.trim()
+      : fallbackVerified
+
   return {
     summary: data.summary,
     health_status_for_travel: data.health_status_for_travel as string,
@@ -201,6 +217,7 @@ function parseTravelPayload(text: string): TravelPlannerResult {
     official_resources: data.official_resources as string[],
     legal_items,
     vaccines_needed,
+    last_verified,
   }
 }
 
@@ -234,6 +251,7 @@ export async function POST(request: Request) {
     destinationCountry?: string
     travelDate?: string
     originCountry?: string
+    transportType?: string
   }
   try {
     body = await request.json()
@@ -247,6 +265,8 @@ export async function POST(request: Request) {
   const travelDate = typeof body.travelDate === 'string' ? body.travelDate.trim() : ''
   const originCountry =
     typeof body.originCountry === 'string' ? body.originCountry.trim() : ''
+  const transportType =
+    typeof body.transportType === 'string' ? body.transportType.trim().toLowerCase() : 'unknown'
 
   if (!dogId || !destinationCountry || !travelDate || !originCountry) {
     return NextResponse.json(
@@ -367,14 +387,40 @@ export async function POST(request: Request) {
     return Number.isNaN(d.getTime()) ? due : d.toISOString().slice(0, 10)
   }
 
-  const prompt = `You are a veterinary travel expert specializing in international pet travel regulations.
+  const currentYear = new Date().getFullYear()
+  const currentMonthYear = new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })
 
-A dog owner wants to travel with their dog:
+  // Build transport-aware search guidance for the system prompt
+  const isFlightTransport = transportType === 'flight'
+  const searchQueries = isFlightTransport
+    ? [
+        `"pet in cabin rules ${destinationCountry} ${currentYear}"`,
+        `"dog flight requirements ${originCountry} to ${destinationCountry} ${currentYear}"`,
+        `"microchip vaccine health certificate dog entry ${destinationCountry} ${currentYear}"`,
+      ]
+    : [
+        `"pet entry requirements ${destinationCountry} ${currentYear}"`,
+        `"dog travel rules ${originCountry} to ${destinationCountry} by ${transportType} ${currentYear}"`,
+        `"microchip vaccine health certificate dog entry ${destinationCountry} ${currentYear}"`,
+      ]
+
+  const systemPrompt = `You are a veterinary travel expert specializing in international pet travel regulations.
+
+Use web_search to find current, accurate pet travel requirements before answering.
+
+Recommended searches:
+${searchQueries.map((q) => `- ${q}`).join('\n')}
+
+After gathering up-to-date information, respond ONLY with valid JSON matching the schema in the user message.
+Set "last_verified" to the current month and year (e.g. "${currentMonthYear}").`
+
+  const prompt = `A dog owner wants to travel with their dog:
 - Dog: ${dogName}, ${dogBreed}, born ${dogDob}
 - Current weight: ${latestWeight ? `${Number(latestWeight.weight_kg)}kg` : 'unknown'}
 - From: ${originCountry}
-- To: ${destinationCountry}  
+- To: ${destinationCountry}
 - Travel date: ${travelDate}
+- Transport: ${transportType}
 
 EXISTING VACCINATIONS & MEDICAL RECORDS (from owner's reminders):
 ${vaccineReminders.length > 0
@@ -401,7 +447,7 @@ ${symptomChecks.length > 0
   ? symptomChecks.map((s) => `- ${s.title} (${s.triage_level})`).join('\n')
   : 'No recent symptom checks'}
 
-Based on this specific dog's health data, create a personalized travel checklist.
+Based on this specific dog's health data and the current regulations you searched for, create a personalized travel checklist.
 Flag any concerns about the dog's current health status for travel.
 Note which vaccinations appear to already be documented vs which are missing.
 
@@ -445,7 +491,8 @@ Create response in this EXACT JSON format:
       "category": "<entry|breed|transport|health>",
       "important": true
     }
-  ]
+  ],
+  "last_verified": "${currentMonthYear}"
 }
 Include 4-5 legal_items covering: entry requirements (microchip, passport, vaccines), breed-specific restrictions, transport rules, destination country warnings. Set important=true if non-compliance could prevent entry.
 Respond ONLY with valid JSON, no markdown.`
@@ -457,11 +504,14 @@ Respond ONLY with valid JSON, no markdown.`
       headers: {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'web-search-2025-03-05',
         'content-type': 'application/json',
       },
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 4096,
+        system: systemPrompt,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -487,8 +537,8 @@ Respond ONLY with valid JSON, no markdown.`
 
   let result: TravelPlannerResult
   try {
-    const text = anthropicMessageText(anthropicJson)
-    result = parseTravelPayload(text)
+    const text = extractTextFromContent(anthropicJson)
+    result = parseTravelPayload(text, currentMonthYear)
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Failed to parse AI response'
     return NextResponse.json({ error: message }, { status: 502 })
