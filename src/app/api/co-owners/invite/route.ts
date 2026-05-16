@@ -138,9 +138,14 @@ export async function POST(request: Request) {
     { onConflict: 'dog_id,invite_email', ignoreDuplicates: false },
   )
 
+  console.log('[CoOwners API] upsert result:', upsertError ?? 'ok')
+
   if (upsertError) {
+    console.error('[CoOwners API] upsert failed:', upsertError)
     return NextResponse.json({ error: upsertError.message }, { status: 500 })
   }
+
+  console.log('[CoOwners API] step: sending email')
 
   // Resolve inviter display name
   const { data: profile } = await supabase
