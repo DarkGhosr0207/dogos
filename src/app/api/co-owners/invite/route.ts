@@ -71,15 +71,22 @@ export async function POST(request: Request) {
   let body: { dogId?: string; inviteEmail?: string }
   try {
     body = await request.json()
-  } catch {
+  } catch (e) {
+    console.error('[CoOwners API] Failed to parse JSON body:', e)
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
   const dogId = typeof body.dogId === 'string' ? body.dogId.trim() : ''
   const inviteEmail = typeof body.inviteEmail === 'string' ? body.inviteEmail.trim().toLowerCase() : ''
 
-  if (!dogId) return NextResponse.json({ error: 'dogId is required' }, { status: 400 })
+  console.log('[CoOwners API] body:', { dogId, inviteEmail })
+
+  if (!dogId) {
+    console.error('[CoOwners API] 400: dogId missing or not a string, raw value:', body.dogId)
+    return NextResponse.json({ error: 'dogId is required' }, { status: 400 })
+  }
   if (!inviteEmail || !inviteEmail.includes('@')) {
+    console.error('[CoOwners API] 400: inviteEmail invalid, raw value:', body.inviteEmail)
     return NextResponse.json({ error: 'Valid inviteEmail is required' }, { status: 400 })
   }
 
