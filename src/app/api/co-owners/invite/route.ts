@@ -156,7 +156,7 @@ export async function POST(request: Request) {
     const resend = new Resend(resendKey)
     await resend.emails
       .send({
-        from: 'DogOS <alerts@dogos.app>',
+        from: 'DogOS <noreply@dogos.net>',
         to: inviteEmail,
         subject: `You've been invited to co-manage ${dogName} on DogOS`,
         html: buildInviteEmail(inviterName, dogName, dogId),
