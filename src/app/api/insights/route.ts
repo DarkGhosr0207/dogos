@@ -58,7 +58,7 @@ function parseInsightsPayload(text: string): InsightsResult {
   const vet_recommendation = data.vet_recommendation
   const positive_highlights = data.positive_highlights
 
-  if (typeof overall_score !== 'number' || overall_score < 1 || overall_score > 10) {
+  if (typeof overall_score !== 'number' || overall_score < 0 || overall_score > 10) {
     throw new Error('Invalid overall_score in model response')
   }
   if (typeof overall_summary !== 'string' || overall_summary.length < 1) {
@@ -230,7 +230,7 @@ ${healthLogs.map((h) => `${h.log_date}: mood=${h.mood} appetite=${h.appetite} en
 
 Provide a health analysis in this EXACT JSON format:
 {
-  "overall_score": <number 1-10>,
+  "overall_score": <number 0.0-10.0, where 10 is perfect health>,
   "overall_summary": "<2-3 sentence overall assessment>",
   "insights": [
     {
