@@ -55,11 +55,13 @@ function buildInviteEmail(inviterName: string, dogName: string, dogId: string): 
 }
 
 export async function POST(request: Request) {
+  try {
   const { user, supabase } = await getUserFromRequest(request)
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  console.log('[CoOwners API] step: checking plan')
   const plan = await getUserPlan(user.id, supabase)
   if (plan !== 'premium_plus') {
     return NextResponse.json(
@@ -123,6 +125,7 @@ export async function POST(request: Request) {
     )
   }
 
+  console.log('[CoOwners API] step: upserting')
   // Upsert the invite (idempotent on invite_email + dog_id)
   const { error: upsertError } = await supabase.from('dog_members').upsert(
     {
@@ -165,4 +168,8 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[CoOwners API] 500 error:', error)
+    return NextResponse.json({ error: 'internal' }, { status: 500 })
+  }
 }
