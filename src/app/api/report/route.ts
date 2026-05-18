@@ -510,8 +510,12 @@ export async function POST(request: Request) {
     reminders_upcoming: reminders,
   }
 
-  const prompt = `You are a veterinary assistant. Create a professional health summary 
+  const locale = typeof raw.locale === 'string' && raw.locale.trim() ? raw.locale.trim() : 'en'
+
+  const prompt = `You are a veterinary assistant. Create a professional health summary
 for a vet visit based on the following data for ${dogName} (${dogBreed}, ${age}).
+
+IMPORTANT: You must write this entire health report in ${locale} language. Every section, heading, and sentence must be in ${locale}. Do not use English anywhere in the report unless ${locale} is English.
 
 DATA (JSON):
 ${JSON.stringify(dataBlock)}
@@ -520,7 +524,7 @@ Generate a concise professional summary in this JSON format:
 {
   "executive_summary": "<2-3 sentences overall health assessment>",
   "weight_summary": "<weight trend analysis>",
-  "activity_summary": "<activity level assessment>", 
+  "activity_summary": "<activity level assessment>",
   "health_summary": "<mood, appetite, energy patterns>",
   "concerns": ["<concern 1>", "<concern 2>"] or [],
   "positive_notes": ["<positive 1>"] or [],
