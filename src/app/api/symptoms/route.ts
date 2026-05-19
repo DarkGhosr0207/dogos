@@ -108,6 +108,7 @@ export async function POST(request: Request) {
     symptoms?: string
     duration?: string
     severity?: string
+    locale?: string
   }
 
   try {
@@ -123,6 +124,7 @@ export async function POST(request: Request) {
     typeof body.duration === 'string' ? body.duration.trim() : ''
   const severity =
     typeof body.severity === 'string' ? body.severity.trim() : ''
+  const locale = typeof body.locale === 'string' && body.locale.trim() ? body.locale.trim() : 'en'
 
   if (!dogId || !symptoms || !duration || !severity) {
     return NextResponse.json(
@@ -151,7 +153,7 @@ export async function POST(request: Request) {
   const breedInfo = dog.breed?.trim() ? dog.breed.trim() : 'Unknown breed'
   const ageInfo = ageLabelFromDateOfBirth(dog.date_of_birth ?? null)
   const userMessage = `Dog breed/age info: ${breedInfo}, age ${ageInfo}. Symptoms: ${symptoms}, duration: ${duration}, severity: ${severity}`
-  const prompt = `${SYSTEM_PROMPT}\n\n${userMessage}`
+  const systemPrompt = `${SYSTEM_PROMPT} You must respond entirely in ${locale} language. Every word of your response must be in ${locale}.`
 
   let anthropicRes: Response
   try {
@@ -165,7 +167,8 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: 'claude-opus-4-5',
         max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }],
       }),
     })
   } catch {

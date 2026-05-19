@@ -252,6 +252,7 @@ export async function POST(request: Request) {
     travelDate?: string
     originCountry?: string
     transportType?: string
+    locale?: string
   }
   try {
     body = await request.json()
@@ -267,6 +268,7 @@ export async function POST(request: Request) {
     typeof body.originCountry === 'string' ? body.originCountry.trim() : ''
   const transportType =
     typeof body.transportType === 'string' ? body.transportType.trim().toLowerCase() : 'unknown'
+  const locale = typeof body.locale === 'string' && body.locale.trim() ? body.locale.trim() : 'en'
 
   if (!dogId || !destinationCountry || !travelDate || !originCountry) {
     return NextResponse.json(
@@ -412,7 +414,8 @@ Recommended searches:
 ${searchQueries.map((q) => `- ${q}`).join('\n')}
 
 After gathering up-to-date information, respond ONLY with valid JSON matching the schema in the user message.
-Set "last_verified" to the current month and year (e.g. "${currentMonthYear}").`
+Set "last_verified" to the current month and year (e.g. "${currentMonthYear}").
+You must respond entirely in ${locale} language. Every word of your response must be in ${locale}.`
 
   const prompt = `A dog owner wants to travel with their dog:
 - Dog: ${dogName}, ${dogBreed}, born ${dogDob}

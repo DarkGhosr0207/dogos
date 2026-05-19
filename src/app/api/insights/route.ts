@@ -116,7 +116,7 @@ export async function POST(request: Request) {
     )
   }
 
-  let body: { dogId?: string }
+  let body: { dogId?: string; locale?: string }
   try {
     body = await request.json()
   } catch {
@@ -124,6 +124,7 @@ export async function POST(request: Request) {
   }
 
   const dogId = typeof body.dogId === 'string' ? body.dogId.trim() : ''
+  const locale = typeof body.locale === 'string' && body.locale.trim() ? body.locale.trim() : 'en'
   if (!dogId) {
     return NextResponse.json({ error: 'dogId is required.' }, { status: 400 })
   }
@@ -216,8 +217,9 @@ export async function POST(request: Request) {
   const dogBreed = (dog.breed && String(dog.breed).trim()) || 'Unknown breed'
   const dogDob = dog.date_of_birth || 'unknown'
 
-  const prompt = `You are a veterinary health analyst. Analyze the following data 
-for ${dogName}, a ${dogBreed} born on ${dogDob}.
+  const prompt = `You are a veterinary health analyst. You must respond entirely in ${locale} language. Every word of your response must be in ${locale}.
+
+Analyze the following data for ${dogName}, a ${dogBreed} born on ${dogDob}.
 
 WEIGHT DATA (last 30 days):
 ${weightLogs.map((w) => `${w.logged_at}: ${w.weight_kg}kg`).join('\n') || 'No weight data'}
