@@ -486,6 +486,7 @@ export async function POST(request: Request) {
     .eq('is_active', true)
     .gte('due_at', todayStart.toISOString())
     .order('due_at', { ascending: true })
+    .limit(20)
 
   if (remindersError) {
     return NextResponse.json(
@@ -500,25 +501,56 @@ export async function POST(request: Request) {
     due_at: String(row.due_at),
   }))
 
-  const dataBlock = {
-    report_month: yyyyMm,
-    period: range.periodLabel,
-    weight_logs,
-    health_logs,
-    activity_logs,
-    symptom_checks,
-    reminders_upcoming: reminders,
-  }
-
   const locale = typeof raw.locale === 'string' && raw.locale.trim() ? raw.locale.trim() : 'en'
+
+  const toDate = (s: string) => String(s).slice(0, 10)
+
+  const weightStr = weight_logs.length === 0
+    ? 'none'
+    : weight_logs.map((w) => `${toDate(w.logged_at)}: ${w.weight_kg}kg`).join(', ')
+
+  const healthStr = health_logs.length === 0
+    ? 'none'
+    : health_logs.map((h) =>
+        `${h.log_date} mood=${h.mood ?? '-'} appetite=${h.appetite ?? '-'} energy=${h.energy ?? '-'} stool=${h.stool ?? '-'}`
+      ).join('\n')
+
+  const activityStr = activity_logs.length === 0
+    ? 'none'
+    : activity_logs.map((a) =>
+        `${toDate(a.logged_at)} ${a.activity_type} ${a.duration_minutes}min${a.intensity ? ' ' + a.intensity : ''}`
+      ).join('\n')
+
+  const symptomStr = symptom_checks.length === 0
+    ? 'none'
+    : symptom_checks.map((s) =>
+        `${toDate(s.created_at)} [${s.triage_level}] ${s.title} — ${String(s.symptoms).slice(0, 80)}`
+      ).join('\n')
+
+  const reminderStr = reminders.length === 0
+    ? 'none'
+    : reminders.map((r) => `${r.type}: ${r.title} (due ${toDate(r.due_at)})`).join('\n')
 
   const prompt = `You are a veterinary assistant. Create a professional health summary
 for a vet visit based on the following data for ${dogName} (${dogBreed}, ${age}).
 
 IMPORTANT: You must write this entire health report in ${locale} language. Every section, heading, and sentence must be in ${locale}. Do not use English anywhere in the report unless ${locale} is English.
 
-DATA (JSON):
-${JSON.stringify(dataBlock)}
+PERIOD: ${yyyyMm} (${range.periodLabel})
+
+WEIGHT: ${weightStr}
+
+HEALTH LOGS (date mood appetite energy stool):
+${healthStr}
+
+ACTIVITY (date type duration intensity):
+${activityStr}
+
+SYMPTOMS (date triage title — symptoms):
+${symptomStr}
+
+UPCOMING REMINDERS:
+${reminderStr}
 
 Generate a concise professional summary in this JSON format:
 {
