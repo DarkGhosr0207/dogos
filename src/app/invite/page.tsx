@@ -54,11 +54,8 @@ export default function InvitePage({
             Tap the button above in Safari to open the app
           </p>
 
-          {/* Copy link button — inline onclick so it works without 'use client' */}
           <button
-            // @ts-expect-error — plain HTML onclick, not a React handler
-            onClick={undefined}
-            onclick={`navigator.clipboard.writeText('${deepLink}').then(function(){this.textContent='✓ Copied!'}).catch(function(){});`}
+            id="copy-btn"
             style={{
               marginTop: '12px',
               padding: '10px 20px',
@@ -96,6 +93,16 @@ export default function InvitePage({
           </div>
         </div>
 
+        <script dangerouslySetInnerHTML={{ __html: `
+          var btn = document.getElementById('copy-btn');
+          if (btn) {
+            btn.addEventListener('click', function() {
+              navigator.clipboard.writeText(${JSON.stringify(deepLink)})
+                .then(function() { btn.textContent = '✓ Copied!'; })
+                .catch(function() {});
+            });
+          }
+        ` }} />
       </body>
     </html>
   )
