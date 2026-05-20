@@ -34,6 +34,10 @@ function buildInviteEmail(inviterName: string, dogName: string, dogId: string): 
       >
         Accept invite in DogOS
       </a>
+      <p style="color:#666;font-size:13px;margin-top:12px">
+        If the button didn&rsquo;t open the app,
+        <a href="${deepLink}" style="color:#2d7a4f">open this link in Safari</a>
+      </p>
       <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0">
       <p style="margin:0 0 8px;font-size:14px;color:#6b7280">
         Don&rsquo;t have DogOS yet? Download it free:

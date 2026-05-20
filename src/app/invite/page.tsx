@@ -44,13 +44,37 @@ export default function InvitePage({
               textDecoration: 'none',
               fontSize: '17px',
               fontWeight: 700,
-              marginBottom: '16px',
+              marginBottom: '8px',
             }}
           >
             Open in DogOS
           </a>
 
-          <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '24px', marginTop: '8px' }}>
+          <p style={{ color: '#888', fontSize: '13px', marginTop: '8px', textAlign: 'center' }}>
+            Tap the button above in Safari to open the app
+          </p>
+
+          {/* Copy link button — inline onclick so it works without 'use client' */}
+          <button
+            // @ts-expect-error — plain HTML onclick, not a React handler
+            onClick={undefined}
+            onclick={`navigator.clipboard.writeText('${deepLink}').then(function(){this.textContent='✓ Copied!'}).catch(function(){});`}
+            style={{
+              marginTop: '12px',
+              padding: '10px 20px',
+              background: 'transparent',
+              border: '1px solid #d1d5db',
+              borderRadius: '10px',
+              fontSize: '14px',
+              color: '#6b7280',
+              cursor: 'pointer',
+              width: '100%',
+            }}
+          >
+            Copy link
+          </button>
+
+          <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '24px', marginTop: '24px' }}>
             <p style={{ margin: '0 0 12px', fontSize: '13px', color: '#9ca3af' }}>
               Don&#39;t have DogOS yet?
             </p>
