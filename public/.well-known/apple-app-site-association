@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "L9X4YWPS22.com.danieloreschenko.dogos",
+        "paths": ["/invite", "/invite/*"]
+      }
+    ]
+  }
+}
