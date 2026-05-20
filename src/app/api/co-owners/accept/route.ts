@@ -43,34 +43,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User has no email' }, { status: 400 })
     }
 
-    // 4. Use service role to bypass RLS and stamp the invite row
+    // 4. Use service role to bypass RLS
     const service = createServiceClient()
     if (!service) {
       return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
     }
 
-    const { data, error: updateError } = await service
+    // SELECT first — gives a clean 404 before we attempt any write
+    const { data: invite, error: selectError } = await service
+      .from('dog_members')
+      .select('id')
+      .eq('dog_id', dogId)
+      .eq('invite_email', userEmail)
+      .is('accepted_at', null)
+      .maybeSingle()
+
+    if (selectError) {
+      console.error('[co-owners/accept] select error:', selectError)
+      return NextResponse.json({ error: selectError.message }, { status: 500 })
+    }
+    if (!invite) {
+      return NextResponse.json(
+        { error: 'Invite not found or already accepted' },
+        { status: 404 },
+      )
+    }
+
+    // UPDATE by primary key — no ambiguity
+    const { error: updateError } = await service
       .from('dog_members')
       .update({
         user_id: user.id,
         accepted_at: new Date().toISOString(),
       })
-      .eq('dog_id', dogId)
-      .eq('invite_email', userEmail)
-      .is('accepted_at', null)
-      .select('id')
+      .eq('id', invite.id)
 
     if (updateError) {
       console.error('[co-owners/accept] update error:', updateError)
       return NextResponse.json({ error: updateError.message }, { status: 500 })
-    }
-
-    // No rows matched → invite not found, already accepted, or wrong email
-    if (!data || data.length === 0) {
-      return NextResponse.json(
-        { error: 'Invite not found or already accepted' },
-        { status: 404 },
-      )
     }
 
     return NextResponse.json({ success: true })
