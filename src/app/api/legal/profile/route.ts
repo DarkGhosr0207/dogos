@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   const { user, supabase } = await getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  let body: { dogId?: string }
+  let body: { dogId?: string; locale?: string }
   try {
     body = await request.json()
   } catch {
@@ -47,9 +47,11 @@ export async function POST(request: Request) {
   if (!dogId) return NextResponse.json({ error: 'dogId is required.' }, { status: 400 })
 
   // Fetch dog
+  const locale = typeof body.locale === 'string' && body.locale.trim() ? body.locale.trim() : 'en'
+
   const { data: dog, error: dogError } = await supabase
     .from('dogs')
-    .select('id, name, breed, weight_kg, legal_profile, legal_profile_generated_at')
+    .select('id, name, breed, weight_kg, legal_profile, legal_profile_generated_at, legal_profile_locale')
     .eq('id', dogId)
     .eq('owner_id', user.id)
     .maybeSingle()
@@ -59,9 +61,10 @@ export async function POST(request: Request) {
 
   const dogRow = dog as Record<string, unknown>
 
-  // Check cache (30 days)
+  // Check cache (30 days, locale-aware)
   const generatedAt = dogRow.legal_profile_generated_at as string | null
-  if (generatedAt) {
+  const cachedLocale = dogRow.legal_profile_locale as string | null
+  if (generatedAt && cachedLocale === locale) {
     const age = Date.now() - new Date(generatedAt).getTime()
     const thirtyDays = 30 * 24 * 60 * 60 * 1000
     if (age < thirtyDays && Array.isArray(dogRow.legal_profile) && (dogRow.legal_profile as unknown[]).length > 0) {
@@ -86,7 +89,8 @@ export async function POST(request: Request) {
 
   const prompt = `You are a dog law expert. Generate 5 personalized legal cards for a dog living in ${location}. Dog: ${name}, breed: ${breed}, weight: ${weight != null ? `${weight}kg` : 'unknown'}. Return ONLY a JSON array, no markdown, no preamble:
 [{ "title": "<max 10 words, specific to this dog>", "description": "<2-3 sentences practical>", "category": "<registration|public_space|breed_restriction|liability|welfare>", "severity": "<info|warning|critical>", "country": "${location}" }]
-If breed has restrictions in ${location}, mark as critical. Be specific to the region, not generic.`
+If breed has restrictions in ${location}, mark as critical. Be specific to the region, not generic.
+IMPORTANT: Respond entirely in the language with locale code '${locale}'. All titles and descriptions must be in that language. Do not use English unless locale is 'en'.`
 
   let anthropicRes: Response
   try {
@@ -153,6 +157,7 @@ If breed has restrictions in ${location}, mark as critical. Be specific to the r
     .update({
       legal_profile: legal_profile,
       legal_profile_generated_at: new Date().toISOString(),
+      legal_profile_locale: locale,
     })
     .eq('id', dogId)
 

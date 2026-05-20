@@ -6,7 +6,7 @@ import { getUserPlan } from '@/lib/freemium'
 const APP_STORE_URL = 'https://apps.apple.com/app/dogos-dog-health-tracker/id6761737193'
 
 function buildInviteEmail(inviterName: string, dogName: string, dogId: string): string {
-  const deepLink = `dogos://invite?dogId=${encodeURIComponent(dogId)}`
+  const deepLink = `dogos:///invite?dogId=${encodeURIComponent(dogId)}`
   return `
 <!DOCTYPE html>
 <html lang="en">
