@@ -2,12 +2,12 @@ export const dynamic = 'force-dynamic'
 
 const APP_STORE_URL = 'https://apps.apple.com/app/dogos-dog-health-tracker/id6761737193'
 
-export default function InvitePage({
+export default async function InvitePage({
   searchParams,
 }: {
-  searchParams: { dogId?: string }
+  searchParams: Promise<{ dogId?: string }>
 }) {
-  const dogId = searchParams.dogId ?? ''
+  const { dogId = '' } = await searchParams
   const deepLink = `dogos:///invite?dogId=${dogId}`
 
   return (
