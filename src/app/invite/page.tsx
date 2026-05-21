@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 const APP_STORE_URL = 'https://apps.apple.com/app/dogos-dog-health-tracker/id6761737193'
 
 export default function InvitePage({
