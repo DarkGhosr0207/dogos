@@ -4,6 +4,10 @@ import { checkTravelPlannerAccess } from '@/lib/freemium'
 
 const MODEL = 'claude-sonnet-4-20250514'
 
+function stripCiteTags(text: string): string {
+  return text.replace(/<cite[^>]*>(.*?)<\/cite>/gs, '$1')
+}
+
 export type TravelDocumentItem = {
   document: string
   description: string
@@ -179,8 +183,8 @@ function parseTravelPayload(text: string, fallbackVerified: string): TravelPlann
     ? (rawLegal as Record<string, unknown>[])
         .filter((it) => it && typeof it.title === 'string')
         .map((it) => ({
-          title: String(it.title),
-          description: typeof it.description === 'string' ? it.description : '',
+          title: stripCiteTags(String(it.title)),
+          description: typeof it.description === 'string' ? stripCiteTags(it.description) : '',
           category: (['entry', 'breed', 'transport', 'health'] as const).includes(
             it.category as 'entry' | 'breed' | 'transport' | 'health',
           )
@@ -190,7 +194,12 @@ function parseTravelPayload(text: string, fallbackVerified: string): TravelPlann
         }))
     : []
 
-  const vaccinations = data.vaccinations as TravelVaccinationItem[]
+  const vaccinations = (data.vaccinations as TravelVaccinationItem[]).map((v) => ({
+    ...v,
+    vaccine: stripCiteTags(v.vaccine),
+    timing: stripCiteTags(v.timing),
+    notes: stripCiteTags(v.notes),
+  }))
   const vaccines_needed = vaccinations.map((v) => ({
     vaccine: v.vaccine,
     required: v.required,
@@ -205,16 +214,24 @@ function parseTravelPayload(text: string, fallbackVerified: string): TravelPlann
       : fallbackVerified
 
   return {
-    summary: data.summary,
-    health_status_for_travel: data.health_status_for_travel as string,
-    urgency_warning: urgency as string | null,
-    required_documents: data.required_documents as TravelDocumentItem[],
+    summary: stripCiteTags(data.summary as string),
+    health_status_for_travel: stripCiteTags(data.health_status_for_travel as string),
+    urgency_warning: urgency ? stripCiteTags(urgency as string) : null,
+    required_documents: (data.required_documents as TravelDocumentItem[]).map((d) => ({
+      ...d,
+      document: stripCiteTags(d.document),
+      description: stripCiteTags(d.description),
+      timing: stripCiteTags(d.timing),
+    })),
     vaccinations,
     vaccines,
-    timeline: data.timeline as TravelTimelineItem[],
-    breed_specific: breed as string | null,
-    estimated_cost: data.estimated_cost,
-    official_resources: data.official_resources as string[],
+    timeline: (data.timeline as TravelTimelineItem[]).map((t) => ({
+      ...t,
+      action: stripCiteTags(t.action),
+    })),
+    breed_specific: breed ? stripCiteTags(breed as string) : null,
+    estimated_cost: stripCiteTags(data.estimated_cost as string),
+    official_resources: (data.official_resources as string[]).map((r) => stripCiteTags(r)),
     legal_items,
     vaccines_needed,
     last_verified,
