@@ -5,7 +5,7 @@ import { checkTravelPlannerAccess } from '@/lib/freemium'
 const MODEL = 'claude-sonnet-4-20250514'
 
 function stripCiteTags(text: string): string {
-  return text.replace(/<cite[^>]*>(.*?)<\/cite>/gs, '$1')
+  return text.replace(/<cite[^>]*>([\s\S]*?)<\/cite>/g, '$1')
 }
 
 export type TravelDocumentItem = {
