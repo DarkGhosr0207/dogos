@@ -145,10 +145,8 @@ Return: {"short": "one sentence max 12 words with emoji", "full": "3 sentences: 
   // Log usage (non-blocking)
   void supabase.from('usage_logs').insert({
     user_id: user.id,
-    feature: 'walk_insight',
     event_name: 'walk_insight',
-    dog_id: dogId,
-    created_at: new Date().toISOString(),
+    properties: { dog_id: dogId, duration_minutes },
   })
 
   return NextResponse.json({ short, full, plan: planStr })
