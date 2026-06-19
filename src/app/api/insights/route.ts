@@ -260,7 +260,7 @@ Respond ONLY with valid JSON, no markdown, no explanation.`
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1000,
+        max_tokens: 2048,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -290,6 +290,7 @@ Respond ONLY with valid JSON, no markdown, no explanation.`
   let insights: InsightsResult
   try {
     const text = anthropicMessageText(anthropicJson)
+    console.log('[insights] raw Claude response:', text)
     insights = parseInsightsPayload(text)
   } catch (e) {
     const message = e instanceof Error ? e.message : 'Failed to parse AI response'
