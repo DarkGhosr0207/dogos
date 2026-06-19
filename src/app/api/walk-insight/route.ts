@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/supabase/get-user-from-request'
 import { getUserPlan } from '@/lib/freemium'
+import { CLAUDE_MODEL } from '@/lib/claude-config'
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_MODEL
 
 const BREED_WALK_NORMS: Record<string, number> = {
   labrador: 60,

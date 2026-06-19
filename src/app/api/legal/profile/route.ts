@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/supabase/get-user-from-request'
+import { CLAUDE_MODEL } from '@/lib/claude-config'
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_MODEL
 
 type LegalProfileItem = {
   title: string

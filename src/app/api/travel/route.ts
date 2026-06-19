@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/supabase/get-user-from-request'
 import { checkTravelPlannerAccess } from '@/lib/freemium'
+import { CLAUDE_MODEL } from '@/lib/claude-config'
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_MODEL
 
 function stripCiteTags(text: string): string {
   return text.replace(/<cite[^>]*>([\s\S]*?)<\/cite>/g, '$1')

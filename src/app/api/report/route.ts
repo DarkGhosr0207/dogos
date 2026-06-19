@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/supabase/get-user-from-request'
 import { checkMonthlyReportAccess } from '@/lib/freemium'
 import { ageLabelFromDateOfBirth } from '@/app/dashboard/dogs/dog-age'
+import { CLAUDE_MODEL } from '@/lib/claude-config'
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = CLAUDE_MODEL
 
 export type ReportClaudeSummary = {
   executive_summary: string
